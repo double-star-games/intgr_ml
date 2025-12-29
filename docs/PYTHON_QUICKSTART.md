@@ -5,6 +5,25 @@
 
 ---
 
+## Try It in 2 Minutes
+
+Want to see IntgrML working immediately? Run one of our hello world examples:
+
+```bash
+# Quick verification (no files needed)
+python -m intgrml.hello_world
+
+# Or run a specific example
+python python/examples/hello_world/binary_classification.py
+```
+
+For complete, minimal examples, see `python/examples/hello_world/`:
+- `binary_classification.py` - Basic 2-class classification
+- `multiclass_classification.py` - 3-class OvR classification
+- `determinism_demo.py` - Bit-exact reproducibility demo
+
+---
+
 ## Installation
 
 ### From Source (Current)

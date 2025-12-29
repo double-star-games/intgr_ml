@@ -123,7 +123,7 @@ public:
             if (label.empty()) continue;
 
             try {
-                std::stoi(label);
+                (void)std::stoi(label);  // Check if numeric, discard result
             } catch (...) {
                 // Found non-numeric label
                 return false;

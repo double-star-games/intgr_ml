@@ -6,19 +6,6 @@ For the full legal terms, see **COMMERCIAL_LICENSE.md**.
 
 ---
 
-## Where do I download intgr_ml?
-
-Prebuilt Python wheels and C++ headers are available from **GitHub**:
-
-- **Python wheels**: [GitHub Releases](https://github.com/pmeade/intgr_ml/releases)
-- **C++ headers**: Clone this repository and use `include/`
-
-**You do not need to go through FastSpring to download intgr_ml.**
-
-FastSpring is used only for purchasing commercial licenses when you exceed the Free Community thresholds. Download access is not gated—compliance is based on your usage, revenue, and funding as defined in the license terms.
-
----
-
 ## Can I use intgr_ml for free?
 
 Yes, if **all** of the following are true:

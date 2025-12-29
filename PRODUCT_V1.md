@@ -107,23 +107,25 @@ These are the **officially supported** v1.0 environments (subject to adjustment 
 
 ### 4.1 Host Platforms
 
-- **Linux x86_64** — Tier 1 Supported Platform
+- **Linux x86_64** — Tier 1 Supported Platform ✅
   - Officially supported in v1.0
   - Builds must pass
   - Core functionality, CLI, and Python bindings must work
-  - Toolchain: modern GCC/Clang (document exact versions in `RUNBOOK.md`)
-  - Prebuilt binaries and/or Python wheels may be provided where feasible
+  - Toolchain: GCC 11+, Clang 15+ (verified in CI)
+  - SIMD: Enabled (AVX2 where available)
+  - Wheel: `intgrml-1.0.0-cp310-cp310-linux_x86_64.whl`
 
-- **Windows x64** — Tier 1 Supported Platform
+- **Windows x64 (MSVC 2022)** — Tier 1 Supported Platform ✅
   - Officially supported in v1.0
-  - Builds must pass under MSVC toolchain
-  - Core functionality, CLI, and Python bindings must work
-  - Determinism guarantees must hold (bit-exact reproducibility)
-  - Toolchain: MSVC (document exact version in `RUNBOOK.md`)
-  - Prebuilt binaries and/or Python wheels are desirable but not guaranteed for v1.0
-  - No promise of deep Windows ecosystem integration (NuGet, UWP, etc.) in v1.0
+  - All C++ and Python tests pass on Windows (410/410 tests, 30/30 Python tests)
+  - Core functionality, CLI (`intgrmlc.exe`), and Python bindings work
+  - Determinism guarantees hold (bit-exact reproducibility verified)
+  - SIMD: Currently disabled on Windows for v1.0 (enabled on Linux)
+  - Requires OpenSSL and Python 3.10–3.13 for Python bindings
+  - Wheel: `intgrml-1.0.0-cp313-cp313-win_amd64.whl`
+  - See `RUNBOOK.md` §2.3.windows for exact build flags
 
-**Note:** macOS and other platforms are NOT Tier 1 unless explicitly promoted later.
+**Note:** macOS is CI-tested but NOT Tier 1 unless explicitly promoted later.
 
 ### 4.2 Languages / APIs
 
@@ -210,36 +212,6 @@ There are **two GitHub repositories**:
   - Ensuring that only intended files are exposed
 - The publication pipeline is documented in `RUNBOOK.md` and should be reproducible.
 
-### 6.2 Distribution & Downloads
-
-**Model B: Headers + Prebuilt Wheels from GitHub Releases**
-
-IntgrML uses a distribution model where:
-
-- **Prebuilt Python wheels** (Linux x86_64, Windows x64) are attached to GitHub Releases
-- **C++ headers** are available directly in this repository (`include/`)
-- **Pure Python wrappers** are available in `python/intgrml/`
-- **Source code** for the core engine is NOT distributed (proprietary)
-
-**Where to get IntgrML:**
-
-| Artifact | Location |
-|----------|----------|
-| Python wheels | [GitHub Releases](https://github.com/pmeade/intgr_ml/releases) |
-| C++ headers | `include/` directory in this repo |
-| Documentation | This repo + [docs/](docs/) |
-
-**Licensing vs. Distribution:**
-
-- **Downloads are ungated.** Users can download wheels from GitHub Releases without authentication or payment.
-- **Licensing is based on usage.** The [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) defines who must pay and when.
-- **FastSpring handles license purchases only.** It does NOT host downloads or gate access to binaries.
-
-This model allows:
-- Easy evaluation and adoption (download and try immediately)
-- Clear legal terms (license defines compliance, not download access)
-- Simple distribution (GitHub handles hosting and versioning)
-
 ---
 
 ## 7. Versioning & Release Policy
@@ -285,4 +257,4 @@ _End of v1.0 Product Definition_
 
 ---
 
-_Windows and Linux Tier-1 platforms validated. Distribution via GitHub Releases; licensing via FastSpring._
+_Windows Tier-1 platform validated 2025-12-29. Both Linux and Windows are production-ready._

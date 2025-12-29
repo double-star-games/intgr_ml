@@ -4,6 +4,25 @@ Practical examples demonstrating common use cases.
 
 ---
 
+## Hello World Examples
+
+**New to IntgrML?** Start here with minimal, runnable examples that use tiny inline datasets and require no external files or large dependencies.
+
+| Example | Description | Run Command |
+|---------|-------------|-------------|
+| `binary_classification.py` | Basic 2-class classification | `python python/examples/hello_world/binary_classification.py` |
+| `multiclass_classification.py` | 3-class One-vs-Rest classification | `python python/examples/hello_world/multiclass_classification.py` |
+| `determinism_demo.py` | Bit-exact reproducibility demo | `python python/examples/hello_world/determinism_demo.py` |
+
+Each script runs in under 2 seconds and prints clear, human-readable output.
+
+**Quick verify:**
+```bash
+python -m intgrml.hello_world
+```
+
+---
+
 ## Table of Contents
 
 1. [Binary Classification](#binary-classification)
