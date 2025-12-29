@@ -34,15 +34,19 @@ Download the wheel for your platform and Python version, then install with pip (
 
 ## Supported Platforms
 
-| Platform | Status | Notes |
-|----------|--------|-------|
-| **Linux x86_64** | ✅ Tier 1: Validated | SIMD enabled where available |
-| **Windows x64** | ✅ Tier 1: Validated | SIMD disabled for v1 |
-| macOS x86_64 | 🟡 Planned | CI builds; wheel testing pending |
-| macOS ARM64 | 🟡 Planned | Apple Silicon support planned |
-| Linux ARM64 | 🟡 Planned | Raspberry Pi / ARM server support planned |
+| Platform | Status | Wheels | Notes |
+|----------|--------|--------|-------|
+| **Linux x86_64** | ✅ Tier 1 | ✅ Available | SIMD enabled where available |
+| **Windows x64** | ✅ Tier 1 | ✅ Available | SIMD disabled for v1 |
+| macOS x86_64 | 🟡 CI-tested | 🟡 Planned | C++ builds pass in CI; wheel pending |
+| macOS ARM64 | 🟡 CI-tested | 🟡 Planned | Apple Silicon; C++ builds pass in CI |
+| Linux ARM64 | 🟡 Planned | 🟡 Planned | Cross-compiled in CI; native testing pending |
 
-IntgrML v1.2 has full Tier 1 support for Linux x86_64 and Windows x64. Other platforms are planned but not yet validated.
+**Tier 1** platforms have validated Python wheels available in [GitHub Releases](https://github.com/pmeade/intgr_ml/releases).
+
+**CI-tested** platforms have C++ builds/tests passing in CI but Python wheels are not yet available.
+
+**Planned** platforms have build infrastructure but require additional validation before wheel release.
 
 ---
 
