@@ -1,6 +1,6 @@
-# Commercial & Community License — intgr_ml
+# ⚙️ **Commercial & Community License — intgr_ml**
 
-**Version 1.0**
+**Version 1.1**
 **Copyright © 2025 Double Star Games LLC**
 **Patent(s) Pending**
 
@@ -8,14 +8,18 @@
 
 ## 1. Purpose
 
-This License governs the use of the **intgr_ml** software libraries, binaries, headers, Python modules, tools, documentation, and related materials (collectively, the **"Software"**) provided by the Licensor.
+This License governs the use of the **intgr_ml** libraries, compiled binaries, bindings, tools, documentation, and related materials (collectively, the **"Software"**) provided by the Licensor.
 
-The Software implements proprietary and patent-pending technology. This License is designed to:
+The Software implements proprietary and patent-pending techniques.
+This license is intentionally designed to be:
 
-- Enable free personal, research, and early-stage commercial use
-- Support real production deployment, including embedded and device integrations
-- Scale fairly as commercial value is realized
-- Protect Licensor's intellectual property and distribution control
+- free and friendly for personal, research, and early startup use
+- predictable, transparent, and fair for commercial users
+- welcoming to embedded, edge, and device deployments
+- simple enough for developers and lawyers to both understand
+
+This Software is **not open source**. You cannot modify or redistribute the core engine.
+We do plan to open-source it in the future, but not yet.
 
 ---
 
@@ -23,10 +27,10 @@ The Software implements proprietary and patent-pending technology. This License 
 
 - **"Licensor"** means Double Star Games LLC or its successors.
 - **"Licensee"** means the individual or legal entity using the Software.
-- **"Annual Revenue"** means Licensee's total gross annual revenue.
-- **"Total Funding"** means total equity or debt funding raised to date.
-- **"Device"** means a physical product or hardware unit incorporating the Software.
-- **"Commercial Use"** means use of the Software in connection with products, services, or deployments intended for commercial advantage or monetary compensation.
+- **"Annual Revenue"** means Licensee's total gross revenue for the prior fiscal year.
+- **"Total Funding"** means total equity or debt financing raised to date.
+- **"Device"** means any physical product shipped that contains the Software in embedded, firmware, or runtime form.
+- **"Commercial Use"** means use in connection with paid products, services, deployments, or activities intended for commercial benefit.
 
 ---
 
@@ -34,135 +38,221 @@ The Software implements proprietary and patent-pending technology. This License 
 
 Subject to the applicable tier below and compliance with this License, Licensor grants Licensee a **non-exclusive, non-transferable, non-sublicensable** license to:
 
-- Use and compile the Software
-- Incorporate the Software into Licensee's products, applications, hosted services, firmware, and Devices
-- Distribute the Software **solely as incorporated into Licensee's products or Devices**
+- Use the Software
+- Integrate the Software into Licensee's products, hosted services, and Devices
+- Distribute the Software **only as incorporated inside Licensee's product or Device**
 
-This License includes a patent license under any Licensor patent(s), including patent-pending claims, necessarily infringed by use of the Software as provided.
+### You **may not**:
 
----
+- Modify, fork, reverse engineer, or create derivative works of the Software (except where required by law)
+- Redistribute the Software as a standalone SDK, runtime, library, or developer product
+- Rehost or mirror the Software
+- Build a competing ML runtime or substantially similar technology using this Software
 
-## 4. Restrictions
-
-Licensee may **not**:
-
-- Modify, decompile, reverse engineer, or create derivative works of the Software, except where required by applicable law
-- Redistribute the Software as a standalone library, SDK, toolkit, runtime, package, or developer product
-- Make the Software available for general download separate from Licensee's product
-- Host mirrors or republish the Software binaries or source
-- Use the Software to build or offer a competing library, runtime, or substantially similar technology
-
-Licensee must obtain the Software directly from Licensor or authorized sources.
+This license includes a patent license under Licensor patents necessarily infringed by using the Software as provided.
 
 ---
 
-## 5. Free Community License
+## 4. Free Community License
 
-Use of the Software is **free of charge** if **all** of the following are true:
+The **Community Tier** is completely **free** if **all** of the following are true:
 
-- Licensee's **Annual Revenue ≤ USD $200,000**, and
-- Licensee's **Total Funding ≤ USD $2,000,000**
+- Annual Revenue ≤ **$200,000**, and
+- Total Funding ≤ **$2,000,000**
 
-Permitted under the Free Community License:
+Allowed under this tier:
 
 - Personal use
-- Academic or research use
+- Academic and research use
 - Evaluation and prototyping
 - Early-stage commercial development
-- Limited commercial deployment consistent with the above thresholds
+- Shipping real products, as long as you are still under the thresholds
 
-High-volume, enterprise, and significant revenue deployments are **not permitted** under this tier.
+If you grow beyond these limits, congratulations 🎉
+Just upgrade — we keep this very friendly.
+
+No reporting is required. We operate primarily on **honor system backed by legal clarity**.
 
 ---
 
-## 6. Commercial License — Tier 1
+## 5. Commercial License — Tier 1
 
-Required if Licensee exceeds Community thresholds and has:
+Required if Licensee exceeds the Community Tier limits and has:
 
-- **Annual Revenue ≤ USD $10,000,000**
+- Annual Revenue ≤ **$10,000,000**
 
-This license permits:
+**Fee:**
+💵 **$2,500 per year**
+
+Includes:
 
 - Full commercial development and deployment
-- Distribution in software applications and hosted services
-- Deployment on Devices at commercially reasonable volumes
+- Distribution in hosted services and software products
+- Embedded and device use within reasonable production volumes
 
-Fees and terms are governed by Licensor's then-current pricing or executed agreement.
-
----
-
-## 7. Commercial License — Tier 2
-
-Required if Licensee has:
-
-- **Annual Revenue > USD $10,000,000 and ≤ USD $50,000,000**
-
-This license permits:
-
-- Full commercial use
-- Embedded, edge, and production deployment
-- Large-scale software distribution and device deployment
-
-Fees and terms are governed by Licensor's then-current pricing or executed agreement.
+If you outgrow this tier, just upgrade when appropriate.
 
 ---
 
-## 8. OEM / Enterprise / High-Volume Embedded
+## 6. Commercial License — Tier 2
 
-A separate negotiated agreement is required if **any** of the following apply:
+Required if Licensee:
 
-- Annual Revenue > USD **$50,000,000**, or
-- Total Funding ≥ USD **$50,000,000**, or
-- Deployment to **high-volume Devices** (such as mass-market consumer hardware), or
-- Use in safety-critical, medical, automotive, aerospace, defense, or other regulated environments
+- Annual Revenue > **$10,000,000** and ≤ **$50,000,000**
 
-Licensor may offer per-device, volume-based, or enterprise licensing schedules under separate terms.
+**Fee:**
+💵 **$25,000 per year**
+
+Includes:
+
+- Full commercial production deployment
+- High-volume software distribution
+- Embedded, edge, and device deployment at scale
+
+Beyond this level, you may require OEM terms depending on device volume.
 
 ---
 
-## 9. Patent Protection & Termination
+## 7. OEM / Enterprise / Embedded High-Volume Licensing
 
-If Licensee initiates patent litigation alleging that the Software infringes a patent, all patent rights granted under this License terminate immediately.
+We want embedded + edge adoption to be easy, predictable, and fair.
+OEM terms apply if **any** of the following are true:
+
+- Annual Revenue > **$50,000,000**, or
+- Total Funding ≥ **$50,000,000**, or
+- Shipping **100,000+ devices per year**, or
+- Deployment in regulated / safety-critical environments (medical, automotive, aerospace, defense)
+
+### OEM Base Fee
+💵 **$50,000 per year minimum**
+
+This establishes enterprise support, clarity, and commitment.
+
+---
+
+### Per-Device Licensing
+Applies only to embedded / device deployments (not normal SaaS/software).
+
+**Indicative pricing ranges**:
+
+| Annual Device Volume | Per-Device Fee |
+|----------------------|----------------|
+| < 100,000 units      | $0.50 – $2.00  |
+| 100,000 – 1,000,000  | $0.10 – $0.50  |
+| > 1,000,000 units    | $0.01 – $0.10  |
+
+Pricing is determined based on:
+- volume commitments
+- product lifetime
+- integration depth
+- support needs
+
+We do **not** do surprise pricing, predatory licensing, or retroactive fees.
+If you succeed, awesome — we just scale together fairly.
+
+---
+
+### Unlimited Deployment Option
+If you hate per-device accounting, we get it 😄
+
+We offer an optional **Unlimited OEM License**:
+
+💵 **$250,000 – $500,000 per year**
+Unlimited worldwide deployment
+
+If that sounds interesting, email us — we'll make it painless.
+
+---
+
+## 8. Redistribution & Hosting
+
+You **may** distribute the Software only when bundled inside your own product.
+
+You **may not**:
+
+- Distribute the Software as a standalone library
+- Host public SDKs, package mirrors, or developer runtimes containing the Software
+- Wrap and re-sell it as a machine learning platform
+
+Internal private repos are fine. Public repos are not.
+
+---
+
+## 9. Compliance Philosophy
+
+We keep this simple and professional:
+
+- No intrusive tracking
+- No forced reporting for normal users
+- Upgrade when you honestly qualify
+- If something changes, email us, we'll sort it out reasonably
+- Grace periods are normal
+- We try to be good humans about this
+
+If someone tries to exploit the license intentionally, then yes — normal legal enforcement applies.
+But that's not who we're designing this for.
+
+---
+
+## 10. Patent Protection & Termination
+
+If Licensee initiates patent litigation claiming the Software infringes a patent, all patent rights granted under this License terminate immediately.
 
 This does not restrict Licensee from defending against patent claims.
 
 ---
 
-## 10. No Warranty
+## 11. Warranty Disclaimer
 
-THE SOFTWARE IS PROVIDED **"AS IS"**, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-
----
-
-## 11. Limitation of Liability
-
-IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR RELATED TO USE OF THE SOFTWARE.
+THE SOFTWARE IS PROVIDED **"AS IS"**, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
 
 ---
 
-## 12. Term & Compliance
+## 12. Limitation of Liability
+
+IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING FROM USE OF THE SOFTWARE.
+
+---
+
+## 13. Term & Termination
 
 - Commercial licenses are valid for the purchased term
-- Licensee must upgrade tiers promptly upon exceeding thresholds
-- Upon termination, Licensee must cease further distribution but may continue operating already shipped copies or Devices
+- If you exceed a tier threshold, upgrade within a reasonable timeframe
+- Upon termination, you must stop distributing new copies
+- Already shipped products/devices may continue to operate
 
 ---
 
-## 13. Governing Law
+## 14. Governing Law
 
-This License is governed by the laws of the State of **Washington**, excluding conflict-of-law rules.
+This License is governed by the laws of the State of **Washington**, excluding conflicts-of-law rules.
 
 ---
 
-## 14. Contact
+## 15. Contact
 
-For commercial, OEM, or enterprise licensing inquiries:
+We like talking to real humans. If you're unsure, reach out.
 
+Licensing & OEM:
 📩 **sales@doublestar.net**
-🌐 **https://doublestar.net**
 
-General inquiries:
+General Questions:
 📩 **hello@doublestar.net**
 
 Support:
 📩 **support@doublestar.net**
+
+Website:
+🌐 **https://doublestar.net**
+
+---
+
+## Closing Note
+
+Our philosophy is simple:
+
+> If you're small, you should be able to build for free.
+> If you're growing, pricing should be predictable and fair.
+> If you scale huge, we succeed with you — without punishment or games.
+
+Thanks for building cool things with **intgr_ml** 💚
