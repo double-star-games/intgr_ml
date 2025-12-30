@@ -168,7 +168,6 @@ intgrmlc boost determinism --data train.csv --out model.sbf --runs 3
 
 ## Documentation
 
-- [Product Overview](PRODUCT_V1.md) — What IntgrML is and isn't
 - [Python API Reference](docs/PYTHON_API.md) — Complete Python documentation
 - [CLI Reference](docs/CLI_REFERENCE.md) — Command-line tool documentation
 - [Python Quickstart](docs/PYTHON_QUICKSTART.md) — Getting started with Python
