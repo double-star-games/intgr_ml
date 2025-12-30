@@ -12,8 +12,12 @@ Why determinism matters:
 - Auditable ML systems
 - Bit-exact parity between desktop training and embedded deployment
 
+Prerequisites:
+    pip install intgrml
+
 Run with:
-    python python/examples/hello_world/determinism_demo.py
+    cd python/examples/hello_world
+    python determinism_demo.py
 
 Expected output:
     - Two models trained independently

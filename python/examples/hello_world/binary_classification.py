@@ -5,8 +5,12 @@ IntgrML Hello World: Binary Classification
 This is a minimal example demonstrating IntgrML's gradient boosting classifier
 with a tiny, hard-coded dataset. No external data files or sklearn required.
 
+Prerequisites:
+    pip install intgrml
+
 Run with:
-    python python/examples/hello_world/binary_classification.py
+    cd python/examples/hello_world
+    python binary_classification.py
 
 Expected output:
     - Model training message

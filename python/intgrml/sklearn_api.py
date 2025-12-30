@@ -312,6 +312,29 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
 
         return self.model_.feature_importances_
 
+    def score(self, X: Union[np.ndarray, "pd.DataFrame"], y: Union[np.ndarray, "pd.Series"]) -> float:
+        """
+        Return the mean accuracy on the given test data and labels.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Test samples
+
+        y : array-like of shape (n_samples,)
+            True labels for X
+
+        Returns
+        -------
+        score : float
+            Mean accuracy of self.predict(X) with respect to y
+        """
+        y_pred = self.predict(X)
+        if hasattr(y, "values"):
+            y = y.values
+        y = np.asarray(y)
+        return float((y_pred == y).mean())
+
     def save(self, path: str) -> None:
         """Save model to file (.sbf format)"""
         self.model_.save(path)
@@ -508,6 +531,91 @@ class IntgrForestClassifier(BaseEstimator, ClassifierMixin):
 
         logits = self.model_.predict(X)
         return (logits >= 0).astype(np.int32)
+
+    def predict_proba(self, X: Union[np.ndarray, "pd.DataFrame"]) -> np.ndarray:
+        """
+        Predict class probabilities for X.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Samples to predict
+
+        Returns
+        -------
+        proba : ndarray of shape (n_samples, n_classes)
+            Class probabilities. Column 0 is P(y=0), column 1 is P(y=1)
+
+        Notes
+        -----
+        IntgrML returns integer logits. This method applies sigmoid transformation
+        to convert logits to probabilities.
+        """
+        if _SKLEARN_AVAILABLE:
+            check_is_fitted(self, ["model_"])
+
+        if hasattr(X, "values"):
+            X = X.values
+
+        if _SKLEARN_AVAILABLE:
+            X = check_array(X, accept_sparse=False, dtype=np.float64)
+
+        # Get logits
+        logits = self.model_.predict(X)
+
+        # Apply sigmoid: p = 1 / (1 + exp(-logit))
+        proba_class_1 = 1.0 / (1.0 + np.exp(-logits.astype(np.float64) / 100.0))
+        proba_class_0 = 1.0 - proba_class_1
+
+        return np.column_stack([proba_class_0, proba_class_1])
+
+    def decision_function(self, X: Union[np.ndarray, "pd.DataFrame"]) -> np.ndarray:
+        """
+        Compute the decision function of X.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Samples
+
+        Returns
+        -------
+        decision : ndarray of shape (n_samples,)
+            Decision function values (raw logits)
+        """
+        if _SKLEARN_AVAILABLE:
+            check_is_fitted(self, ["model_"])
+
+        if hasattr(X, "values"):
+            X = X.values
+
+        if _SKLEARN_AVAILABLE:
+            X = check_array(X, accept_sparse=False, dtype=np.float64)
+
+        return self.model_.predict(X).astype(np.float64)
+
+    def score(self, X: Union[np.ndarray, "pd.DataFrame"], y: Union[np.ndarray, "pd.Series"]) -> float:
+        """
+        Return the mean accuracy on the given test data and labels.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Test samples
+
+        y : array-like of shape (n_samples,)
+            True labels for X
+
+        Returns
+        -------
+        score : float
+            Mean accuracy of self.predict(X) with respect to y
+        """
+        y_pred = self.predict(X)
+        if hasattr(y, "values"):
+            y = y.values
+        y = np.asarray(y)
+        return float((y_pred == y).mean())
 
     def save(self, path: str) -> None:
         """Save model to file"""

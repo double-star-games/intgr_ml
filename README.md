@@ -1,14 +1,35 @@
 # IntgrML
 
-**Integer-Only Machine Learning for Edge Devices**
+**Version 1.2.1** — Integer-Only Machine Learning for Edge Devices
 
 IntgrML is a production-ready machine learning library that performs training and inference using pure integer arithmetic. Designed for deterministic, reproducible results across platforms, IntgrML enables deployment on embedded systems, microcontrollers, and environments where floating-point hardware is unavailable or undesirable.
 
 ---
 
+## About This Repository
+
+This repository contains the **SDK distribution** of IntgrML:
+
+- **Python wrappers** (`python/intgrml/`) — sklearn-compatible API
+- **Public C++ headers** (`include/`) — for embedding in C++ projects
+- **Documentation** (`docs/`) — API reference, quickstart, examples
+- **Example scripts** (`python/examples/`) — usage demonstrations
+
+The **core C++ engine and compiled extensions are not stored here**. IntgrML uses a binary distribution model — the compiled `_core` module is distributed via wheels.
+
+**To use IntgrML**, install via pip or download a wheel from GitHub Releases:
+
+```bash
+pip install intgrml
+```
+
+This is intentional: IntgrML's core implementation is closed-source, but the SDK, headers, and documentation are provided here for reference and integration.
+
+---
+
 ## Key Features
 
-- **Integer-only arithmetic**: All training and inference uses fixed-point math (Q8.8 values, Q16.16 accumulator) with no floating-point operations at runtime
+- **Integer-only arithmetic**: All training and inference uses fixed-point math (Q8.8 values, Q16.16 accumulator) with no floating-point operations at runtime. (Note: Some initialization steps like building lookup tables may use floats internally, but on-device model evaluation is strictly integer-only.)
 - **Bit-exact determinism**: Same inputs + same seed = identical results across runs, platforms, and compilers
 - **Edge/embedded ready**: Models run identically on desktop, MCU, and WebAssembly targets
 - **Efficient memory layout**: Compact model formats optimized for constrained environments
@@ -25,9 +46,9 @@ Prebuilt Python wheels for Linux (x86_64 and ARM64) and Windows are available fr
 
 | Platform | Wheel Example |
 |----------|---------------|
-| Linux x86_64 | `intgrml-1.0.0-cp310-cp310-linux_x86_64.whl` |
-| Windows x64 | `intgrml-1.0.0-cp313-cp313-win_amd64.whl` |
-| Linux ARM64 | `intgrml-1.0.0-cp310-cp310-manylinux_2_28_aarch64.whl` |
+| Linux x86_64 | `intgrml-1.2.1-cp310-cp310-linux_x86_64.whl` |
+| Windows x64 | `intgrml-1.2.1-cp313-cp313-win_amd64.whl` |
+| Linux ARM64 | `intgrml-1.2.1-cp310-cp310-manylinux_2_28_aarch64.whl` |
 
 Download the wheel for your platform and Python version, then install with pip (see Installation below).
 
@@ -82,9 +103,9 @@ Download the appropriate wheel for your platform from [GitHub Releases](https://
 
 ```bash
 # Download the wheel for your platform and Python version, then:
-pip install intgrml-1.0.0-cp310-cp310-linux_x86_64.whl   # Linux x86_64
-pip install intgrml-1.0.0-cp313-cp313-win_amd64.whl      # Windows x64
-pip install intgrml-1.0.0-cp310-cp310-manylinux_2_28_aarch64.whl  # Linux ARM64
+pip install intgrml-1.2.1-cp310-cp310-linux_x86_64.whl   # Linux x86_64
+pip install intgrml-1.2.1-cp313-cp313-win_amd64.whl      # Windows x64
+pip install intgrml-1.2.1-cp310-cp310-manylinux_2_28_aarch64.whl  # Linux ARM64
 ```
 
 ### Linux ARM64 Installation
@@ -92,7 +113,7 @@ pip install intgrml-1.0.0-cp310-cp310-manylinux_2_28_aarch64.whl  # Linux ARM64
 If you're on ARM Linux (Jetson, Graviton, Ampere, Raspberry Pi 4+, etc.):
 
 ```bash
-pip install intgrml-1.0.0-cp310-cp310-manylinux_2_28_aarch64.whl
+pip install intgrml-1.2.1-cp310-cp310-manylinux_2_28_aarch64.whl
 ```
 
 Verified on:
@@ -124,6 +145,8 @@ Building from source requires the full development repository. Contact us for ac
 ---
 
 ## Quickstart
+
+> **Note:** The examples below assume you have installed IntgrML via `pip install intgrml` or from a wheel. This repository does not contain the compiled C++ core — it's distributed as prebuilt wheels.
 
 ### Python
 

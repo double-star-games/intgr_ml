@@ -6,6 +6,13 @@ This example demonstrates:
 2. scikit-learn compatible API
 3. Model serialization
 4. Hyperparameter tuning with GridSearchCV
+
+Prerequisites:
+    pip install intgrml scikit-learn
+
+Run with:
+    cd python/examples
+    python quickstart.py
 """
 
 import numpy as np

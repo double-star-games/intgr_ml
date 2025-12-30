@@ -1,8 +1,8 @@
 # IntgrML Python API Reference
 
-**Version**: 1.0.0
+**Version**: 1.2.1
 **Status**: Production Ready
-**License**: Proprietary (free for research/evaluation)
+**License**: Commercial & Community License (free for personal, research, and early-stage startup use; commercial tiers available). See `COMMERCIAL_LICENSE.md` for details.
 
 ---
 
@@ -42,11 +42,11 @@ pip install -e .
 ### Requirements
 
 **Required:**
-- Python 3.8+
+- Python 3.10+
 - NumPy >= 1.19.0
 - pybind11 >= 2.10.0
 - CMake >= 3.18
-- C++20 compiler (GCC 10+, Clang 10+, MSVC 2019+)
+- C++20 compiler (GCC 11+, Clang 15+, MSVC 2022+)
 
 **Optional:**
 - scikit-learn >= 0.24.0 (for GridSearchCV, validation utilities)
@@ -729,12 +729,13 @@ Similar to IntgrBoostClassifier, with addition of:
 Same methods as IntgrBoostClassifier:
 - `fit(X, y, sample_weight=None)`
 - `predict(X)`
+- `predict_proba(X)` — Returns class probabilities
+- `decision_function(X)` — Returns raw logits
+- `score(X, y)` — Returns mean accuracy
 - `save(path)`
 - `load(path)`
 - `get_params(deep=True)`
 - `set_params(**params)`
-
-**Note:** `predict_proba()` and `decision_function()` not yet implemented.
 
 #### Attributes
 
@@ -1220,7 +1221,11 @@ IntgrML implements the standard sklearn API to enable seamless integration with 
 
 ## License
 
-IntgrML is free for non-commercial research and evaluation.
-Commercial use requires a license from **Pluperfect Biomimetics / Double Star**.
+IntgrML is licensed under the **Commercial & Community License**.
 
-**Contact**: patrick@doublestar.net
+- Free for personal, research, and early-stage startup use (Revenue ≤ $200k, Funding ≤ $2M)
+- Commercial tiers and OEM options available for larger organizations
+
+See `COMMERCIAL_LICENSE.md` and `LICENSING_FAQ.md` for full terms.
+
+**Contact**: sales@doublestar.net

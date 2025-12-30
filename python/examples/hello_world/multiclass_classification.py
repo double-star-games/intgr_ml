@@ -6,8 +6,12 @@ This example demonstrates multiclass classification (3 classes) using
 IntgrML. Since IntgrML v1.2.1 supports binary classification natively,
 we use a One-vs-Rest (OvR) approach with multiple binary classifiers.
 
+Prerequisites:
+    pip install intgrml
+
 Run with:
-    python python/examples/hello_world/multiclass_classification.py
+    cd python/examples/hello_world
+    python multiclass_classification.py
 
 Note: Full multiclass support in the Python API is coming in v1.3.
 This example shows the pattern for 3-class problems.

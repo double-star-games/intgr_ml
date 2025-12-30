@@ -51,12 +51,19 @@ enum class OverflowMode : u8 {
 };
 
 // Compile-time overflow mode selection
-#ifndef SNAPML_OVERFLOW_MODE
+// INTGRML_OVERFLOW_MODE: 0=SATURATE (default release), 1=TRAP (default debug), 2=WRAP (fast/unsafe)
+#ifndef INTGRML_OVERFLOW_MODE
     #ifdef NDEBUG
-        #define SNAPML_OVERFLOW_MODE SATURATE
+        #define INTGRML_OVERFLOW_MODE 0  // SATURATE
     #else
-        #define SNAPML_OVERFLOW_MODE TRAP
+        #define INTGRML_OVERFLOW_MODE 1  // TRAP
     #endif
+#endif
+
+// Backwards compatibility with legacy SNAPML_OVERFLOW_MODE macro
+#ifdef SNAPML_OVERFLOW_MODE
+    #undef INTGRML_OVERFLOW_MODE
+    #define INTGRML_OVERFLOW_MODE SNAPML_OVERFLOW_MODE
 #endif
 
 // Saturating arithmetic helpers
@@ -109,26 +116,26 @@ namespace detail {
     }
 }
 
-// Safe arithmetic macros (behavior depends on SNAPML_OVERFLOW_MODE)
-#if SNAPML_OVERFLOW_MODE == 0  // SATURATE
-    #define SNAP_ADD(a, b) (::intgr::detail::sat_add((a), (b)))
-    #define SNAP_SUB(a, b) (::intgr::detail::sat_sub((a), (b)))
-    #define SNAP_MUL(a, b) (::intgr::detail::sat_mul((a), (b)))
-#elif SNAPML_OVERFLOW_MODE == 1  // TRAP
+// Safe arithmetic macros (behavior depends on INTGRML_OVERFLOW_MODE)
+#if INTGRML_OVERFLOW_MODE == 0  // SATURATE
+    #define INTGR_ADD(a, b) (::intgr::detail::sat_add((a), (b)))
+    #define INTGR_SUB(a, b) (::intgr::detail::sat_sub((a), (b)))
+    #define INTGR_MUL(a, b) (::intgr::detail::sat_mul((a), (b)))
+#elif INTGRML_OVERFLOW_MODE == 1  // TRAP
     #include <cassert>
-    #define SNAP_ADD(a, b) ([&](){ \
+    #define INTGR_ADD(a, b) ([&](){ \
         auto _a = (a), _b = (b); \
         assert((_b > 0 && _a <= std::numeric_limits<decltype(_a)>::max() - _b) || \
                (_b <= 0 && _a >= std::numeric_limits<decltype(_a)>::min() - _b)); \
         return _a + _b; \
     }())
-    #define SNAP_SUB(a, b) ([&](){ \
+    #define INTGR_SUB(a, b) ([&](){ \
         auto _a = (a), _b = (b); \
         assert((_b < 0 && _a <= std::numeric_limits<decltype(_a)>::max() + _b) || \
                (_b >= 0 && _a >= std::numeric_limits<decltype(_a)>::min() + _b)); \
         return _a - _b; \
     }())
-    #define SNAP_MUL(a, b) ([&](){ \
+    #define INTGR_MUL(a, b) ([&](){ \
         auto _a = (a), _b = (b); \
         using W = std::conditional_t<sizeof(decltype(_a)) <= 4, i64, i64>; \
         W _r = static_cast<W>(_a) * static_cast<W>(_b); \
@@ -137,10 +144,15 @@ namespace detail {
         return static_cast<decltype(_a)>(_r); \
     }())
 #else  // WRAP (unsafe, fast)
-    #define SNAP_ADD(a, b) ((a) + (b))
-    #define SNAP_SUB(a, b) ((a) - (b))
-    #define SNAP_MUL(a, b) ((a) * (b))
+    #define INTGR_ADD(a, b) ((a) + (b))
+    #define INTGR_SUB(a, b) ((a) - (b))
+    #define INTGR_MUL(a, b) ((a) * (b))
 #endif
+
+// Backwards compatibility aliases for legacy SNAP_* macros
+#define SNAP_ADD(a, b) INTGR_ADD(a, b)
+#define SNAP_SUB(a, b) INTGR_SUB(a, b)
+#define SNAP_MUL(a, b) INTGR_MUL(a, b)
 
 // Clamp utility
 template<typename T>
