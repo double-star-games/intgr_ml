@@ -42,15 +42,45 @@ This is intentional: IntgrML's core implementation is closed-source, but the SDK
 
 ## Downloads
 
-Prebuilt Python wheels for Linux (x86_64 and ARM64) and Windows are available from the [GitHub Releases](https://github.com/pmeade/intgr_ml/releases) page.
+All release artifacts are available from [GitHub Releases](https://github.com/pmeade/intgr_ml/releases).
 
-| Platform | Wheel Example |
-|----------|---------------|
-| Linux x86_64 | `intgrml-1.2.1-cp310-cp310-linux_x86_64.whl` |
-| Windows x64 | `intgrml-1.2.1-cp313-cp313-win_amd64.whl` |
-| Linux ARM64 | `intgrml-1.2.1-cp310-cp310-manylinux_2_28_aarch64.whl` |
+### What's in a Release
 
-Download the wheel for your platform and Python version, then install with pip (see Installation below).
+Each GitHub Release includes:
+
+**Python Wheels**
+| Platform | Wheel |
+|----------|-------|
+| Linux x86_64 | `intgrml-X.Y.Z-cpXX-cpXX-linux_x86_64.whl` |
+| Linux ARM64 | `intgrml-X.Y.Z-cpXX-cpXX-manylinux_2_28_aarch64.whl` |
+| Windows x64 | `intgrml-X.Y.Z-cpXX-cpXX-win_amd64.whl` |
+
+**CLI Binaries** (in SDK archives)
+| Platform | Binary |
+|----------|--------|
+| Linux x86_64 | `intgrmlc` |
+| Linux ARM64 | `intgrmlc` |
+| Windows x64 | `intgrmlc.exe` |
+| macOS ARM64 | `intgrmlc` |
+| macOS x86_64 | `intgrmlc` |
+
+**C++ SDK Archives**
+| Platform | Archive |
+|----------|---------|
+| Linux x86_64 | `intgrml-sdk-linux-x86_64.tar.gz` |
+| Linux ARM64 | `intgrml-sdk-linux-arm64.tar.gz` |
+| Windows x64 | `intgrml-sdk-windows-x64.zip` |
+| macOS ARM64 | `intgrml-sdk-macos-arm64.tar.gz` |
+| macOS x86_64 | `intgrml-sdk-macos-x86_64.tar.gz` |
+
+Each SDK archive contains:
+- `lib/` — Static library (`libintgr_ml.a` or `intgr_ml.lib`)
+- `bin/` — CLI tool (`intgrmlc` or `intgrmlc.exe`)
+- `include/` — Header files (also available in this repository)
+
+### Headers
+
+Public C++ headers are available in this repository under `include/`. These are the same headers bundled in the SDK archives.
 
 ---
 
@@ -61,11 +91,11 @@ Every platform listed below is validated through real builds and execution testi
 
 | Platform | Status | Wheel Support | Notes |
 |----------|--------|---------------|-------|
-| **Linux x86_64** | ✅ Tier 1 | Yes | Native validated, deterministic verified |
-| **Windows x64** | ✅ Tier 1 | Yes | Native validated, deterministic verified |
-| **Linux ARM64 (aarch64)** | ✅ Tier 1 | Yes | Built as manylinux_2_28, container-executed + deterministic verified |
-| **macOS (Intel)** | 🟡 Planned | No | CI builds pass, wheels pending |
-| **macOS (Apple Silicon)** | 🟡 Planned | No | CI builds pass, wheels pending |
+| **Linux x86_64** | Tier 1 | Yes | Native validated, deterministic verified |
+| **Windows x64** | Tier 1 | Yes | Native validated, deterministic verified |
+| **Linux ARM64 (aarch64)** | Tier 1 | Yes | Built as manylinux_2_28, container-executed + deterministic verified |
+| **macOS (Intel)** | Planned | No | CI builds pass, wheels pending |
+| **macOS (Apple Silicon)** | Planned | No | CI builds pass, wheels pending |
 
 ### What "Tier 1" Means
 
@@ -103,9 +133,9 @@ Download the appropriate wheel for your platform from [GitHub Releases](https://
 
 ```bash
 # Download the wheel for your platform and Python version, then:
-pip install intgrml-1.2.1-cp310-cp310-linux_x86_64.whl   # Linux x86_64
-pip install intgrml-1.2.1-cp313-cp313-win_amd64.whl      # Windows x64
-pip install intgrml-1.2.1-cp310-cp310-manylinux_2_28_aarch64.whl  # Linux ARM64
+pip install intgrml-X.Y.Z-cpXX-cpXX-linux_x86_64.whl   # Linux x86_64
+pip install intgrml-X.Y.Z-cpXX-cpXX-win_amd64.whl      # Windows x64
+pip install intgrml-X.Y.Z-cpXX-cpXX-manylinux_2_28_aarch64.whl  # Linux ARM64
 ```
 
 ### Linux ARM64 Installation
@@ -113,7 +143,7 @@ pip install intgrml-1.2.1-cp310-cp310-manylinux_2_28_aarch64.whl  # Linux ARM64
 If you're on ARM Linux (Jetson, Graviton, Ampere, Raspberry Pi 4+, etc.):
 
 ```bash
-pip install intgrml-1.2.1-cp310-cp310-manylinux_2_28_aarch64.whl
+pip install intgrml-X.Y.Z-cpXX-cpXX-manylinux_2_28_aarch64.whl
 ```
 
 Verified on:
@@ -173,6 +203,8 @@ clf.save("model.sbf")
 
 ### CLI
 
+The `intgrmlc` command-line tool is included in the SDK archives on [GitHub Releases](https://github.com/pmeade/intgr_ml/releases). Download the SDK for your platform, extract, and add `bin/` to your PATH.
+
 ```bash
 # Show available commands
 intgrmlc --help
@@ -203,13 +235,13 @@ intgrmlc boost determinism --data train.csv --out model.sbf --runs 3
 IntgrML is licensed under a **Commercial & Community License**.
 
 ### Free Community Tier
-- Annual Revenue ≤ $200,000
-- Total Funding ≤ $2,000,000
+- Annual Revenue <= $200,000
+- Total Funding <= $2,000,000
 - Includes personal, research, and early-stage commercial use
 
 ### Commercial Tiers
-- **Tier 1**: Annual Revenue ≤ $10,000,000
-- **Tier 2**: Annual Revenue ≤ $50,000,000
+- **Tier 1**: Annual Revenue <= $10,000,000
+- **Tier 2**: Annual Revenue <= $50,000,000
 - **Enterprise/OEM**: Custom agreements for larger deployments
 
 ### Downloads vs. License Purchase
