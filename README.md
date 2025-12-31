@@ -42,7 +42,7 @@ This is intentional: IntgrML's core implementation is closed-source, but the SDK
 
 ## Downloads
 
-All release artifacts are available from [GitHub Releases](https://github.com/pmeade/intgr_ml/releases).
+All release artifacts are available from [GitHub Releases](https://github.com/double-star-games/intgr_ml/releases).
 
 ### What's in a Release
 
@@ -131,7 +131,7 @@ Determinism is a core design value of IntgrML.
 
 ### Recommended: Install from Wheel (Most Users)
 
-Download the appropriate wheel for your platform from [GitHub Releases](https://github.com/pmeade/intgr_ml/releases), then install:
+Download the appropriate wheel for your platform from [GitHub Releases](https://github.com/double-star-games/intgr_ml/releases), then install:
 
 ```bash
 # Download the wheel for your platform and Python version, then:
@@ -204,7 +204,7 @@ clf.save("model.sbf")
 
 ### CLI
 
-The `intgrmlc` command-line tool is included in the SDK archives on [GitHub Releases](https://github.com/pmeade/intgr_ml/releases). Download the SDK for your platform, extract, and add `bin/` to your PATH.
+The `intgrmlc` command-line tool is included in the SDK archives on [GitHub Releases](https://github.com/double-star-games/intgr_ml/releases). Download the SDK for your platform, extract, and add `bin/` to your PATH.
 
 ```bash
 # Show available commands
@@ -247,7 +247,7 @@ IntgrML is licensed under a **Commercial & Community License**.
 
 ### Downloads vs. License Purchase
 
-**Downloads are free and public.** Prebuilt wheels are available directly from [GitHub Releases](https://github.com/pmeade/intgr_ml/releases) without authentication or payment.
+**Downloads are free and public.** Prebuilt wheels are available directly from [GitHub Releases](https://github.com/double-star-games/intgr_ml/releases) without authentication or payment.
 
 **Licensing is based on usage.** Compliance with the license terms is determined by your organization's revenue, funding, and use case—not by how you obtained the software.
 
@@ -263,7 +263,7 @@ See [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) for full terms and [LICENSING
 - **General questions**: hello@doublestar.net
 - **Technical support**: support@doublestar.net
 - **Website**: https://doublestar.net
-- **Issues**: https://github.com/pmeade/intgr_ml/issues
+- **Issues**: https://github.com/double-star-games/intgr_ml/issues
 
 ---
 

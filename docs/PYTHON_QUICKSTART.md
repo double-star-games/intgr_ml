@@ -30,7 +30,7 @@ For complete, minimal examples, see `python/examples/hello_world/`:
 
 ```bash
 # Clone repository
-git clone https://github.com/pmeade/intgr_ml.git
+git clone https://github.com/double-star-games/intgr_ml.git
 cd intgr_ml
 
 # Install dependencies
@@ -305,9 +305,9 @@ y_pred = clf.predict(X_test)
 
 ## Getting Help
 
-- **Documentation**: https://github.com/pmeade/intgr_ml
-- **Issues**: https://github.com/pmeade/intgr_ml/issues
-- **Discussions**: https://github.com/pmeade/intgr_ml/discussions
+- **Documentation**: https://github.com/double-star-games/intgr_ml
+- **Issues**: https://github.com/double-star-games/intgr_ml/issues
+- **Discussions**: https://github.com/double-star-games/intgr_ml/discussions
 - **Examples**: `python/examples/` directory
 
 ---
@@ -336,4 +336,4 @@ IntgrML implements the standard sklearn API to enable ecosystem compatibility wh
 **Next Steps:**
 1. Try the [Quickstart Example](python/examples/01_quickstart.ipynb)
 2. Read the [Full Documentation](docs/)
-3. Join the [Discussion Forum](https://github.com/pmeade/intgr_ml/discussions)
+3. Join the [Discussion Forum](https://github.com/double-star-games/intgr_ml/discussions)

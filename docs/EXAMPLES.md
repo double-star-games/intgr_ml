@@ -731,5 +731,5 @@ print("\n✓ Model saved to fraud_detection_model.sbf")
 
 - **API Reference**: See [PYTHON_API.md](PYTHON_API.md)
 - **Quickstart**: See [PYTHON_QUICKSTART.md](../PYTHON_QUICKSTART.md)
-- **GitHub**: https://github.com/pmeade/intgr_ml
-- **Issues**: https://github.com/pmeade/intgr_ml/issues
+- **GitHub**: https://github.com/double-star-games/intgr_ml
+- **Issues**: https://github.com/double-star-games/intgr_ml/issues

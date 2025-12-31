@@ -29,7 +29,7 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/pmeade/intgr_ml.git
+git clone https://github.com/double-star-games/intgr_ml.git
 cd intgr_ml
 
 # Install dependencies
@@ -1200,9 +1200,9 @@ grid = GridSearchCV(clf, param_grid, cv=3)
 
 ## Support
 
-- **Documentation**: https://github.com/pmeade/intgr_ml
-- **Issues**: https://github.com/pmeade/intgr_ml/issues
-- **Discussions**: https://github.com/pmeade/intgr_ml/discussions
+- **Documentation**: https://github.com/double-star-games/intgr_ml
+- **Issues**: https://github.com/double-star-games/intgr_ml/issues
+- **Discussions**: https://github.com/double-star-games/intgr_ml/discussions
 - **Email**: patrick@doublestar.net
 
 ---
