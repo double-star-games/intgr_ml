@@ -14,6 +14,159 @@ while maintaining API compatibility with the Python ML ecosystem.
 
 import numpy as np
 from typing import Optional, Union
+import numbers
+
+# =============================================================================
+# Constants
+# =============================================================================
+
+# Maximum number of features supported by IntgrML (uint16 feature indices)
+MAX_FEATURES = 65535
+
+# Default temperature for logit-to-probability conversion
+# IntgrML uses Q8.8 fixed-point logits; dividing by 100 produces well-calibrated
+# probabilities for typical gradient boosting outputs.
+DEFAULT_TEMPERATURE = 100.0
+
+
+# =============================================================================
+# Parameter Validation Helpers
+# =============================================================================
+
+def _validate_n_estimators(n_estimators, name="n_estimators"):
+    """Validate n_estimators parameter.
+
+    Must be a positive integer.
+    """
+    if not isinstance(n_estimators, numbers.Integral):
+        raise TypeError(f"{name} must be an integer, got {type(n_estimators).__name__}")
+    if n_estimators < 1:
+        raise ValueError(f"{name} must be >= 1, got {n_estimators}")
+    if n_estimators > 100000:
+        raise ValueError(f"{name}={n_estimators} is unreasonably large (max 100,000)")
+    return int(n_estimators)
+
+
+def _validate_max_depth(max_depth, name="max_depth"):
+    """Validate max_depth parameter.
+
+    Must be an integer between 1 and 15 (IntgrML tree depth limit).
+    """
+    if not isinstance(max_depth, numbers.Integral):
+        raise TypeError(f"{name} must be an integer, got {type(max_depth).__name__}")
+    if not 1 <= max_depth <= 15:
+        raise ValueError(f"{name} must be between 1 and 15, got {max_depth}")
+    return int(max_depth)
+
+
+def _validate_learning_rate(learning_rate, name="learning_rate"):
+    """Validate learning_rate parameter.
+
+    Must be a positive float, typically in (0, 1].
+    """
+    if not isinstance(learning_rate, numbers.Real):
+        raise TypeError(f"{name} must be a number, got {type(learning_rate).__name__}")
+    if learning_rate <= 0:
+        raise ValueError(f"{name} must be > 0, got {learning_rate}")
+    if learning_rate > 10:
+        raise ValueError(f"{name}={learning_rate} is unusually large (typical range: 0.01-1.0)")
+    return float(learning_rate)
+
+
+def _validate_min_samples_leaf(min_samples_leaf, name="min_samples_leaf"):
+    """Validate min_samples_leaf parameter.
+
+    Must be a positive integer.
+    """
+    if not isinstance(min_samples_leaf, numbers.Integral):
+        raise TypeError(f"{name} must be an integer, got {type(min_samples_leaf).__name__}")
+    if min_samples_leaf < 1:
+        raise ValueError(f"{name} must be >= 1, got {min_samples_leaf}")
+    return int(min_samples_leaf)
+
+
+def _validate_n_bins(n_bins, name="n_bins"):
+    """Validate n_bins parameter.
+
+    Must be an integer between 2 and 256.
+    """
+    if not isinstance(n_bins, numbers.Integral):
+        raise TypeError(f"{name} must be an integer, got {type(n_bins).__name__}")
+    if not 2 <= n_bins <= 256:
+        raise ValueError(f"{name} must be between 2 and 256, got {n_bins}")
+    return int(n_bins)
+
+
+def _validate_clip_bounds(clip_min, clip_max):
+    """Validate clip_min and clip_max parameters.
+
+    Both must be numeric, and clip_min must be strictly less than clip_max.
+    """
+    if not isinstance(clip_min, numbers.Real):
+        raise TypeError(f"clip_min must be a number, got {type(clip_min).__name__}")
+    if not isinstance(clip_max, numbers.Real):
+        raise TypeError(f"clip_max must be a number, got {type(clip_max).__name__}")
+    if clip_min >= clip_max:
+        raise ValueError(f"clip_min must be < clip_max, got clip_min={clip_min}, clip_max={clip_max}")
+    return float(clip_min), float(clip_max)
+
+
+def _validate_subsample(subsample, name="subsample"):
+    """Validate subsample parameter.
+
+    Must be a float in (0, 1].
+    """
+    if not isinstance(subsample, numbers.Real):
+        raise TypeError(f"{name} must be a number, got {type(subsample).__name__}")
+    if not 0 < subsample <= 1:
+        raise ValueError(f"{name} must be in (0, 1], got {subsample}")
+    return float(subsample)
+
+
+def _validate_temperature(temperature, name="temperature"):
+    """Validate temperature parameter for logit scaling.
+
+    Must be a positive float. Higher values produce more uniform probabilities,
+    lower values produce more confident (peaked) probabilities.
+    """
+    if not isinstance(temperature, numbers.Real):
+        raise TypeError(f"{name} must be a number, got {type(temperature).__name__}")
+    if temperature <= 0:
+        raise ValueError(f"{name} must be > 0, got {temperature}")
+    return float(temperature)
+
+
+def _validate_random_state(random_state, name="random_state"):
+    """Validate random_state parameter.
+
+    Accepts None (uses default seed), integers, or numpy RandomState/Generator.
+    Returns an integer seed for the native code.
+    """
+    if random_state is None:
+        return None  # Will use default in native code
+    if isinstance(random_state, numbers.Integral):
+        return int(random_state)
+    if hasattr(random_state, 'randint'):  # numpy RandomState or Generator
+        # Generate a seed from the random state
+        return int(random_state.randint(0, 2**31 - 1))
+    raise TypeError(
+        f"{name} must be None, an integer, or a numpy RandomState/Generator, "
+        f"got {type(random_state).__name__}"
+    )
+
+
+def _validate_features(X, name="X"):
+    """Validate feature array dimensions.
+
+    Checks that n_features does not exceed IntgrML's limit of 65,535.
+    """
+    n_features = X.shape[1] if X.ndim > 1 else 1
+    if n_features > MAX_FEATURES:
+        raise ValueError(
+            f"IntgrML supports up to {MAX_FEATURES:,} features; "
+            f"got {n_features:,}. Consider feature selection or dimensionality reduction."
+        )
+    return n_features
 
 try:
     # sklearn base classes enable ecosystem compatibility (BSD license)
@@ -70,32 +223,41 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
     Parameters
     ----------
     n_estimators : int, default=100
-        Number of boosting rounds (trees to build)
+        Number of boosting rounds (trees to build). Must be >= 1.
 
     max_depth : int, default=6
-        Maximum tree depth. Deeper trees can model more complex patterns
-        but may overfit
+        Maximum tree depth (1-15). Deeper trees can model more complex patterns
+        but may overfit.
 
     learning_rate : float, default=0.25
         Boosting learning rate (shrinkage). Lower values require more trees
-        but may generalize better. Range: 0.0-1.0
+        but may generalize better. Must be > 0, typical range: 0.01-1.0.
 
     min_samples_leaf : int, default=8
-        Minimum number of samples required in a leaf node
+        Minimum number of samples required in a leaf node. Must be >= 1.
 
     n_bins : int, default=256
-        Number of histogram bins for feature quantization. Higher values
-        preserve more information but increase memory usage
+        Number of histogram bins for feature quantization (2-256). Higher values
+        preserve more information but increase memory usage.
 
     clip_min : float, default=-10.0
-        Minimum value for feature clipping during quantization
+        Minimum value for feature clipping during quantization.
+        Must be < clip_max.
 
     clip_max : float, default=10.0
-        Maximum value for feature clipping during quantization
+        Maximum value for feature clipping during quantization.
+        Must be > clip_min.
 
-    random_state : int, default=None
+    temperature : float, default=100.0
+        Temperature scaling for logit-to-probability conversion in predict_proba().
+        IntgrML returns Q8.8 fixed-point logits; dividing by temperature before
+        sigmoid produces calibrated probabilities. Higher values → more uniform,
+        lower values → more confident predictions. Must be > 0.
+
+    random_state : int or None, default=None
         Random seed for reproducibility. IntgrML guarantees bit-exact
-        reproducibility when the same seed is used
+        reproducibility when the same seed is used. If None, uses internal
+        default (42 for backward compatibility).
 
     Attributes
     ----------
@@ -135,8 +297,10 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         n_bins: int = 256,
         clip_min: float = -10.0,
         clip_max: float = 10.0,
+        temperature: float = DEFAULT_TEMPERATURE,
         random_state: Optional[int] = None,
     ):
+        # Store parameters as-is (sklearn convention for clone/get_params)
         self.n_estimators = n_estimators
         self.max_depth = max_depth
         self.learning_rate = learning_rate
@@ -144,7 +308,19 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         self.n_bins = n_bins
         self.clip_min = clip_min
         self.clip_max = clip_max
-        self.random_state = random_state if random_state is not None else 42
+        self.temperature = temperature
+        self.random_state = random_state
+
+    def _validate_params(self):
+        """Validate all parameters. Called at fit() time."""
+        _validate_n_estimators(self.n_estimators)
+        _validate_max_depth(self.max_depth)
+        _validate_learning_rate(self.learning_rate)
+        _validate_min_samples_leaf(self.min_samples_leaf)
+        _validate_n_bins(self.n_bins)
+        _validate_clip_bounds(self.clip_min, self.clip_max)
+        _validate_temperature(self.temperature)
+        _validate_random_state(self.random_state)
 
     def fit(
         self,
@@ -172,7 +348,10 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
             Fitted estimator
         """
         if sample_weight is not None:
-            raise NotImplementedError("sample_weight not yet supported in v1.2.1")
+            raise NotImplementedError("sample_weight not yet supported")
+
+        # Validate parameters before proceeding
+        self._validate_params()
 
         # Handle pandas DataFrames
         if hasattr(X, "values"):  # pandas DataFrame
@@ -185,6 +364,9 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         if _SKLEARN_AVAILABLE:
             X, y = check_X_y(X, y, accept_sparse=False, dtype=np.float64)
 
+        # Validate feature count
+        _validate_features(X)
+
         # Store number of features
         self.n_features_in_ = X.shape[1]
 
@@ -194,17 +376,22 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         # Ensure y is int32
         y = y.astype(np.int32)
 
+        # Get validated random_state (None -> use internal default)
+        seed = _validate_random_state(self.random_state)
+        if seed is None:
+            seed = 42  # IntgrML's internal default for reproducibility
+
         # Create and fit core model
         self.model_ = _CoreBoost(
-            trees=self.n_estimators,
-            depth=self.max_depth,
-            bins=self.n_bins,
-            learning_rate=self.learning_rate,
-            min_samples_leaf=self.min_samples_leaf,
-            random_state=self.random_state,
+            trees=int(self.n_estimators),
+            depth=int(self.max_depth),
+            bins=int(self.n_bins),
+            learning_rate=float(self.learning_rate),
+            min_samples_leaf=int(self.min_samples_leaf),
+            random_state=seed,
         )
 
-        self.model_.fit(X, y, clip_min=self.clip_min, clip_max=self.clip_max)
+        self.model_.fit(X, y, clip_min=float(self.clip_min), clip_max=float(self.clip_max))
 
         return self
 
@@ -265,9 +452,11 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         # Get logits
         logits = self.model_.predict(X)
 
-        # Apply sigmoid: p = 1 / (1 + exp(-logit))
-        # Use stable sigmoid computation
-        proba_class_1 = 1.0 / (1.0 + np.exp(-logits.astype(np.float64) / 100.0))
+        # Apply sigmoid: p = 1 / (1 + exp(-logit / temperature))
+        # IntgrML returns Q8.8 fixed-point logits; temperature scaling converts
+        # to well-calibrated probabilities. Default temperature=100.0 works well
+        # for typical gradient boosting outputs.
+        proba_class_1 = 1.0 / (1.0 + np.exp(-logits.astype(np.float64) / self.temperature))
         proba_class_0 = 1.0 - proba_class_1
 
         return np.column_stack([proba_class_0, proba_class_1])
@@ -343,13 +532,16 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         """Load model from file (.sbf format)"""
         # Create model instance if not already fitted
         if not hasattr(self, "model_"):
+            seed = _validate_random_state(self.random_state)
+            if seed is None:
+                seed = 42
             self.model_ = _CoreBoost(
-                trees=self.n_estimators,
-                depth=self.max_depth,
-                bins=self.n_bins,
-                learning_rate=self.learning_rate,
-                min_samples_leaf=self.min_samples_leaf,
-                random_state=self.random_state,
+                trees=int(self.n_estimators),
+                depth=int(self.max_depth),
+                bins=int(self.n_bins),
+                learning_rate=float(self.learning_rate),
+                min_samples_leaf=int(self.min_samples_leaf),
+                random_state=seed,
             )
         self.model_.load(path)
         # Set fitted attributes
@@ -366,28 +558,28 @@ class IntgrBoostRegressor(BaseEstimator, RegressorMixin):
     Parameters
     ----------
     n_estimators : int, default=100
-        Number of boosting rounds
+        Number of boosting rounds. Must be >= 1.
 
     max_depth : int, default=6
-        Maximum tree depth
+        Maximum tree depth (1-15).
 
     learning_rate : float, default=0.25
-        Boosting learning rate
+        Boosting learning rate. Must be > 0, typical range: 0.01-1.0.
 
     min_samples_leaf : int, default=8
-        Minimum samples per leaf
+        Minimum samples per leaf. Must be >= 1.
 
     n_bins : int, default=256
-        Number of histogram bins
+        Number of histogram bins (2-256).
 
     clip_min : float, default=-10.0
-        Minimum feature value
+        Minimum value for feature clipping. Must be < clip_max.
 
     clip_max : float, default=10.0
-        Maximum feature value
+        Maximum value for feature clipping. Must be > clip_min.
 
-    random_state : int, default=None
-        Random seed
+    random_state : int or None, default=None
+        Random seed for reproducibility.
 
     Examples
     --------
@@ -395,6 +587,10 @@ class IntgrBoostRegressor(BaseEstimator, RegressorMixin):
     >>> reg = IntgrBoostRegressor(n_estimators=100)
     >>> reg.fit(X_train, y_train)
     >>> predictions = reg.predict(X_test)
+
+    Notes
+    -----
+    This class is a placeholder for future implementation.
     """
 
     def __init__(
@@ -408,6 +604,7 @@ class IntgrBoostRegressor(BaseEstimator, RegressorMixin):
         clip_max: float = 10.0,
         random_state: Optional[int] = None,
     ):
+        # Store parameters as-is (sklearn convention)
         self.n_estimators = n_estimators
         self.max_depth = max_depth
         self.learning_rate = learning_rate
@@ -415,17 +612,15 @@ class IntgrBoostRegressor(BaseEstimator, RegressorMixin):
         self.n_bins = n_bins
         self.clip_min = clip_min
         self.clip_max = clip_max
-        self.random_state = random_state if random_state is not None else 42
+        self.random_state = random_state
 
     def fit(self, X, y, sample_weight=None):
-        """Fit the model (same as IntgrBoostClassifier)"""
-        # Similar implementation to classifier
-        # (For now, delegate to classifier - full implementation pending)
-        raise NotImplementedError("IntgrBoostRegressor coming in v1.3.0")
+        """Fit the model."""
+        raise NotImplementedError("IntgrBoostRegressor coming in a future release")
 
     def predict(self, X):
-        """Predict continuous values"""
-        raise NotImplementedError("IntgrBoostRegressor coming in v1.3.0")
+        """Predict continuous values."""
+        raise NotImplementedError("IntgrBoostRegressor coming in a future release")
 
 
 class IntgrForestClassifier(BaseEstimator, ClassifierMixin):
@@ -437,28 +632,33 @@ class IntgrForestClassifier(BaseEstimator, ClassifierMixin):
     Parameters
     ----------
     n_estimators : int, default=100
-        Number of trees in the forest
+        Number of trees in the forest. Must be >= 1.
 
     max_depth : int, default=8
-        Maximum tree depth
+        Maximum tree depth (1-15).
 
     min_samples_leaf : int, default=10
-        Minimum samples per leaf
+        Minimum samples per leaf. Must be >= 1.
 
     n_bins : int, default=256
-        Number of histogram bins
+        Number of histogram bins (2-256).
 
     subsample : float, default=0.8
-        Fraction of samples to use for each tree
+        Fraction of samples to use for each tree. Must be in (0, 1].
 
     clip_min : float, default=-10.0
-        Minimum feature value
+        Minimum value for feature clipping. Must be < clip_max.
 
     clip_max : float, default=10.0
-        Maximum feature value
+        Maximum value for feature clipping. Must be > clip_min.
 
-    random_state : int, default=None
-        Random seed
+    temperature : float, default=100.0
+        Temperature scaling for logit-to-probability conversion in predict_proba().
+        Higher values → more uniform, lower values → more confident predictions.
+        Must be > 0.
+
+    random_state : int or None, default=None
+        Random seed for reproducibility. If None, uses internal default (42).
 
     Examples
     --------
@@ -477,8 +677,10 @@ class IntgrForestClassifier(BaseEstimator, ClassifierMixin):
         subsample: float = 0.8,
         clip_min: float = -10.0,
         clip_max: float = 10.0,
+        temperature: float = DEFAULT_TEMPERATURE,
         random_state: Optional[int] = None,
     ):
+        # Store parameters as-is (sklearn convention for clone/get_params)
         self.n_estimators = n_estimators
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
@@ -486,12 +688,27 @@ class IntgrForestClassifier(BaseEstimator, ClassifierMixin):
         self.subsample = subsample
         self.clip_min = clip_min
         self.clip_max = clip_max
-        self.random_state = random_state if random_state is not None else 42
+        self.temperature = temperature
+        self.random_state = random_state
+
+    def _validate_params(self):
+        """Validate all parameters. Called at fit() time."""
+        _validate_n_estimators(self.n_estimators)
+        _validate_max_depth(self.max_depth)
+        _validate_min_samples_leaf(self.min_samples_leaf)
+        _validate_n_bins(self.n_bins)
+        _validate_subsample(self.subsample)
+        _validate_clip_bounds(self.clip_min, self.clip_max)
+        _validate_temperature(self.temperature)
+        _validate_random_state(self.random_state)
 
     def fit(self, X, y, sample_weight=None):
-        """Fit the random forest model"""
+        """Fit the random forest model."""
         if sample_weight is not None:
             raise NotImplementedError("sample_weight not yet supported")
+
+        # Validate parameters before proceeding
+        self._validate_params()
 
         if hasattr(X, "values"):
             self.feature_names_in_ = list(X.columns)
@@ -502,20 +719,28 @@ class IntgrForestClassifier(BaseEstimator, ClassifierMixin):
         if _SKLEARN_AVAILABLE:
             X, y = check_X_y(X, y, accept_sparse=False, dtype=np.float64)
 
+        # Validate feature count
+        _validate_features(X)
+
         self.n_features_in_ = X.shape[1]
         self.classes_ = np.array([0, 1])
         y = y.astype(np.int32)
 
+        # Get validated random_state (None -> use internal default)
+        seed = _validate_random_state(self.random_state)
+        if seed is None:
+            seed = 42  # IntgrML's internal default for reproducibility
+
         self.model_ = _CoreForest(
-            trees=self.n_estimators,
-            depth=self.max_depth,
-            bins=self.n_bins,
-            min_samples_leaf=self.min_samples_leaf,
-            subsample=self.subsample,
-            random_state=self.random_state,
+            trees=int(self.n_estimators),
+            depth=int(self.max_depth),
+            bins=int(self.n_bins),
+            min_samples_leaf=int(self.min_samples_leaf),
+            subsample=float(self.subsample),
+            random_state=seed,
         )
 
-        self.model_.fit(X, y, clip_min=self.clip_min, clip_max=self.clip_max)
+        self.model_.fit(X, y, clip_min=float(self.clip_min), clip_max=float(self.clip_max))
         return self
 
     def predict(self, X):
@@ -563,8 +788,10 @@ class IntgrForestClassifier(BaseEstimator, ClassifierMixin):
         # Get logits
         logits = self.model_.predict(X)
 
-        # Apply sigmoid: p = 1 / (1 + exp(-logit))
-        proba_class_1 = 1.0 / (1.0 + np.exp(-logits.astype(np.float64) / 100.0))
+        # Apply sigmoid: p = 1 / (1 + exp(-logit / temperature))
+        # IntgrML returns integer logits; temperature scaling converts
+        # to well-calibrated probabilities.
+        proba_class_1 = 1.0 / (1.0 + np.exp(-logits.astype(np.float64) / self.temperature))
         proba_class_0 = 1.0 - proba_class_1
 
         return np.column_stack([proba_class_0, proba_class_1])
@@ -622,16 +849,19 @@ class IntgrForestClassifier(BaseEstimator, ClassifierMixin):
         self.model_.save(path)
 
     def load(self, path: str) -> None:
-        """Load model from file"""
+        """Load model from file."""
         # Create model instance if not already fitted
         if not hasattr(self, "model_"):
+            seed = _validate_random_state(self.random_state)
+            if seed is None:
+                seed = 42
             self.model_ = _CoreForest(
-                trees=self.n_estimators,
-                depth=self.max_depth,
-                bins=self.n_bins,
-                min_samples_leaf=self.min_samples_leaf,
-                subsample=self.subsample,
-                random_state=self.random_state,
+                trees=int(self.n_estimators),
+                depth=int(self.max_depth),
+                bins=int(self.n_bins),
+                min_samples_leaf=int(self.min_samples_leaf),
+                subsample=float(self.subsample),
+                random_state=seed,
             )
         self.model_.load(path)
         # Set fitted attributes

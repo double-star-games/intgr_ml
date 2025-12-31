@@ -1,6 +1,6 @@
 # IntgrML Python API Reference
 
-**Version**: 1.2.1
+**Version**: 1.2.7
 **Status**: Production Ready
 **License**: Commercial & Community License (free for personal, research, and early-stage startup use; commercial tiers available). See `COMMERCIAL_LICENSE.md` for details.
 
@@ -387,37 +387,55 @@ from intgrml import IntgrBoostClassifier
 ```python
 IntgrBoostClassifier(n_estimators=100, max_depth=6, learning_rate=0.25,
                     min_samples_leaf=8, n_bins=256, clip_min=-10.0,
-                    clip_max=10.0, random_state=None)
+                    clip_max=10.0, temperature=100.0, random_state=None)
 ```
 
 **Parameters:**
 
 - **n_estimators** : `int`, default=100
-  Number of boosting rounds (trees)
+  Number of boosting rounds (trees). Must be >= 1.
   Equivalent to `trees` in core API
 
 - **max_depth** : `int`, default=6
-  Maximum tree depth
+  Maximum tree depth (1-15). IntgrML's fixed-point arithmetic limits depth.
   Equivalent to `depth` in core API
 
 - **learning_rate** : `float`, default=0.25
-  Boosting learning rate (shrinkage). Range: 0.0-1.0
+  Boosting learning rate (shrinkage). Must be > 0, typical range: 0.01-1.0.
 
 - **min_samples_leaf** : `int`, default=8
-  Minimum samples required in a leaf node
+  Minimum samples required in a leaf node. Must be >= 1.
 
 - **n_bins** : `int`, default=256
-  Number of histogram bins for quantization
+  Number of histogram bins for quantization (2-256).
 
 - **clip_min** : `float`, default=-10.0
-  Minimum value for feature clipping
+  Minimum value for feature clipping. Must be < clip_max.
 
 - **clip_max** : `float`, default=10.0
-  Maximum value for feature clipping
+  Maximum value for feature clipping. Must be > clip_min.
 
-- **random_state** : `int` or `None`, default=None
-  Random seed for reproducibility
-  If None, uses 42 as default
+- **temperature** : `float`, default=100.0
+  Temperature scaling for `predict_proba()`. IntgrML returns Q8.8 fixed-point
+  logits; dividing by temperature before sigmoid produces calibrated probabilities.
+  - Higher values → more uniform probabilities
+  - Lower values → more confident (peaked) probabilities
+  Must be > 0.
+
+- **random_state** : `int`, `numpy.RandomState`, or `None`, default=None
+  Random seed for reproducibility. IntgrML guarantees bit-exact reproducibility
+  with the same seed. If None, uses 42 as internal default.
+
+**Parameter Validation:**
+
+All parameters are validated at `fit()` time. Invalid values raise clear error messages:
+
+```python
+# Examples of validation errors:
+IntgrBoostClassifier(n_estimators=-5)  # ValueError: n_estimators must be >= 1, got -5
+IntgrBoostClassifier(max_depth=20)     # ValueError: max_depth must be between 1 and 15, got 20
+IntgrBoostClassifier(learning_rate="fast")  # TypeError: learning_rate must be a number
+```
 
 **Example:**
 
@@ -713,7 +731,7 @@ from intgrml import IntgrForestClassifier
 ```python
 IntgrForestClassifier(n_estimators=100, max_depth=8, min_samples_leaf=10,
                      n_bins=256, subsample=0.8, clip_min=-10.0,
-                     clip_max=10.0, random_state=None)
+                     clip_max=10.0, temperature=100.0, random_state=None)
 ```
 
 **Parameters:**
@@ -721,8 +739,12 @@ IntgrForestClassifier(n_estimators=100, max_depth=8, min_samples_leaf=10,
 Similar to IntgrBoostClassifier, with addition of:
 
 - **subsample** : `float`, default=0.8
-  Fraction of samples to use for each tree (bagging)
-  Range: 0.0-1.0
+  Fraction of samples to use for each tree (bagging). Must be in (0, 1].
+
+- **temperature** : `float`, default=100.0
+  Temperature scaling for `predict_proba()`. Same behavior as IntgrBoostClassifier.
+
+All parameters are validated at `fit()` time with clear error messages.
 
 #### Methods
 
@@ -747,13 +769,13 @@ Same methods as IntgrBoostClassifier:
 
 ### IntgrBoostRegressor
 
-Gradient boosted trees for regression (not yet implemented).
+Gradient boosted trees for regression (placeholder for future implementation).
 
 ```python
 from intgrml import IntgrBoostRegressor
 ```
 
-**Status:** Coming in v1.3.0
+**Status:** Coming in a future release.
 
 All methods raise `NotImplementedError`.
 
