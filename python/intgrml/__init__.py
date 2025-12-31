@@ -19,7 +19,7 @@ For scikit-learn compatibility:
 >>> predictions = model.predict(X_test)
 """
 
-__version__ = "1.2.1"
+__version__ = "1.2.5"
 __author__ = "Patrick Meade"
 
 # Import core C++ bindings

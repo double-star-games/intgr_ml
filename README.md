@@ -1,6 +1,6 @@
 # IntgrML
 
-**Version 1.2.1** — Integer-Only Machine Learning for Edge Devices
+**Version 1.2.4** — Integer-Only Machine Learning for Edge Devices
 
 IntgrML is a production-ready machine learning library that performs training and inference using pure integer arithmetic. Designed for deterministic, reproducible results across platforms, IntgrML enables deployment on embedded systems, microcontrollers, and environments where floating-point hardware is unavailable or undesirable.
 
@@ -51,9 +51,11 @@ Each GitHub Release includes:
 **Python Wheels**
 | Platform | Wheel |
 |----------|-------|
-| Linux x86_64 | `intgrml-X.Y.Z-cpXX-cpXX-linux_x86_64.whl` |
+| Linux x86_64 | `intgrml-X.Y.Z-cpXX-cpXX-manylinux_2_28_x86_64.whl` |
 | Linux ARM64 | `intgrml-X.Y.Z-cpXX-cpXX-manylinux_2_28_aarch64.whl` |
 | Windows x64 | `intgrml-X.Y.Z-cpXX-cpXX-win_amd64.whl` |
+
+Linux wheels are built as `manylinux_2_28` for broad distro compatibility (Ubuntu 22.04+, etc.).
 
 **CLI Binaries** (in SDK archives)
 | Platform | Binary |
@@ -91,7 +93,7 @@ Every platform listed below is validated through real builds and execution testi
 
 | Platform | Status | Wheel Support | Notes |
 |----------|--------|---------------|-------|
-| **Linux x86_64** | Tier 1 | Yes | Native validated, deterministic verified |
+| **Linux x86_64** | Tier 1 | Yes | Built as manylinux_2_28, deterministic verified |
 | **Windows x64** | Tier 1 | Yes | Native validated, deterministic verified |
 | **Linux ARM64 (aarch64)** | Tier 1 | Yes | Built as manylinux_2_28, container-executed + deterministic verified |
 | **macOS (Intel)** | Planned | No | CI builds pass, wheels pending |
@@ -133,23 +135,22 @@ Download the appropriate wheel for your platform from [GitHub Releases](https://
 
 ```bash
 # Download the wheel for your platform and Python version, then:
-pip install intgrml-X.Y.Z-cpXX-cpXX-linux_x86_64.whl   # Linux x86_64
-pip install intgrml-X.Y.Z-cpXX-cpXX-win_amd64.whl      # Windows x64
+pip install intgrml-X.Y.Z-cpXX-cpXX-manylinux_2_28_x86_64.whl   # Linux x86_64
+pip install intgrml-X.Y.Z-cpXX-cpXX-win_amd64.whl               # Windows x64
 pip install intgrml-X.Y.Z-cpXX-cpXX-manylinux_2_28_aarch64.whl  # Linux ARM64
 ```
 
-### Linux ARM64 Installation
+### Linux Compatibility Note
 
-If you're on ARM Linux (Jetson, Graviton, Ampere, Raspberry Pi 4+, etc.):
+Both Linux wheels (x86_64 and ARM64) are built as `manylinux_2_28`, ensuring compatibility with:
+- Ubuntu 22.04+
+- Debian 11+
+- RHEL/CentOS 8+
+- Most modern Linux distributions
 
-```bash
-pip install intgrml-X.Y.Z-cpXX-cpXX-manylinux_2_28_aarch64.whl
-```
+This avoids GLIBCXX version errors that can occur with wheels built on newer host systems.
 
-Verified on:
-- Docker / manylinux aarch64
-- QEMU execution
-- Determinism parity
+The Linux CLI binary (`intgrmlc`) and C++ SDK are also built with the manylinux toolchain for maximum compatibility. The CLI bundles OpenSSL 1.1 shared libraries to avoid `libcrypto.so.1.1` dependency issues on systems with OpenSSL 3.x.
 
 Verify the installation:
 

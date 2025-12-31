@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <limits>
 #include <type_traits>
+#include <cassert>  // Must be outside namespace for assert() to work correctly
 
 namespace intgr {
 
@@ -122,7 +123,7 @@ namespace detail {
     #define INTGR_SUB(a, b) (::intgr::detail::sat_sub((a), (b)))
     #define INTGR_MUL(a, b) (::intgr::detail::sat_mul((a), (b)))
 #elif INTGRML_OVERFLOW_MODE == 1  // TRAP
-    #include <cassert>
+    // cassert already included at top of file (must be outside namespace)
     #define INTGR_ADD(a, b) ([&](){ \
         auto _a = (a), _b = (b); \
         assert((_b > 0 && _a <= std::numeric_limits<decltype(_a)>::max() - _b) || \
