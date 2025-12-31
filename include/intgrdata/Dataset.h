@@ -13,7 +13,8 @@ namespace intgr {
 
 /// CSV loading quantization strategy
 enum class CsvLoadStrategy {
-    AUTO,           ///< Automatic int8/int16 selection based on precision threshold
+    LINEAR,         ///< Simple linear quantization using fixed clip bounds (canonical, recommended)
+    AUTO,           ///< Automatic int8/int16 selection based on precision threshold (legacy)
     HYBRID,         ///< Use feature importance to decide int8 vs int16 per column
     ADAPTIVE_BINS   ///< Allocate quantization bins proportionally to feature importance
 };
@@ -25,7 +26,7 @@ struct CsvLoadConfig {
     f32 clip_min = -10.0f;                ///< Minimum value for clipping
     f32 clip_max = 10.0f;                 ///< Maximum value for clipping
     f32 precision_threshold = 0.02f;      ///< Max quantization error for int8 (2%)
-    CsvLoadStrategy strategy = CsvLoadStrategy::AUTO;  ///< Quantization strategy
+    CsvLoadStrategy strategy = CsvLoadStrategy::LINEAR;  ///< Quantization strategy (LINEAR is canonical)
 
     // Hybrid strategy parameters
     std::vector<f32> feature_importance;  ///< Importance scores [0, 1] per feature

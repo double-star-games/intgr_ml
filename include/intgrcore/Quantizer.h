@@ -187,6 +187,33 @@ public:
         return columns_.size() - 1;
     }
 
+    /// Fit simple linear quantization using fixed clip bounds (canonical method)
+    /// This is the recommended quantization for most use cases.
+    /// Maps [clip_min, clip_max] → [0, 255] → [-128, 127]
+    /// Matches Python bindings behavior exactly.
+    /// @param clip_min  Clip values below this (e.g., -10.0)
+    /// @param clip_max  Clip values above this (e.g., +10.0)
+    /// @return Column index
+    usize fit_column_linear(f32 clip_min = -10.0f, f32 clip_max = 10.0f) {
+        QuantMeta meta;
+        meta.min_val = clip_min;
+        meta.max_val = clip_max;
+        meta.scale = (clip_max - clip_min) / 255.0f;
+        meta.zero = -128 - static_cast<i32>(std::round(clip_min / meta.scale));
+        meta.bits = 8;
+        columns_.push_back(meta);
+        return columns_.size() - 1;
+    }
+
+    /// Quantize a single value using linear quantization (canonical method)
+    /// Clips to [clip_min, clip_max], then maps to [-128, 127]
+    static i8 quantize_linear(f32 val, f32 clip_min, f32 clip_max) noexcept {
+        val = clamp(val, clip_min, clip_max);
+        f32 normalized = (val - clip_min) / (clip_max - clip_min);
+        i32 quantized = static_cast<i32>(normalized * 255.0f);
+        return static_cast<i8>(quantized - 128);
+    }
+
     /// Fit percentile-based quantization for a single column with custom bin count
     /// Uses equal-frequency bins instead of equal-width bins
     /// @param data   Float array of length n
