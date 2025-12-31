@@ -209,7 +209,7 @@ except ImportError:
             if not hasattr(estimator, attr):
                 raise ValueError(f"This {type(estimator).__name__} instance is not fitted yet")
 
-from intgrml._core import Boost as _CoreBoost, Forest as _CoreForest
+from intgrml._core import Boost as _CoreBoost, Forest as _CoreForest, OvR as _CoreOvR
 
 
 class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
@@ -337,7 +337,7 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
             Training data
 
         y : array-like of shape (n_samples,)
-            Target values (binary: 0 or 1)
+            Target values. For binary: 0 or 1. For multiclass: 0, 1, 2, ...
 
         sample_weight : array-like of shape (n_samples,), default=None
             Sample weights (currently not supported, reserved for future use)
@@ -346,6 +346,11 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         -------
         self : object
             Fitted estimator
+
+        Notes
+        -----
+        For multiclass problems (K > 2 classes), this uses One-vs-Rest (OvR)
+        strategy internally, training K binary classifiers in parallel.
         """
         if sample_weight is not None:
             raise NotImplementedError("sample_weight not yet supported")
@@ -370,28 +375,49 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         # Store number of features
         self.n_features_in_ = X.shape[1]
 
-        # Store class labels
-        self.classes_ = np.array([0, 1])
-
         # Ensure y is int32
         y = y.astype(np.int32)
+
+        # Detect number of classes and store class labels
+        unique_classes = np.unique(y)
+        self.classes_ = unique_classes
+        self.n_classes_ = len(unique_classes)
+
+        # Validate labels are contiguous starting from 0
+        if unique_classes[0] != 0 or unique_classes[-1] != self.n_classes_ - 1:
+            # Remap labels to 0..K-1
+            label_map = {label: i for i, label in enumerate(unique_classes)}
+            y = np.array([label_map[label] for label in y], dtype=np.int32)
 
         # Get validated random_state (None -> use internal default)
         seed = _validate_random_state(self.random_state)
         if seed is None:
             seed = 42  # IntgrML's internal default for reproducibility
 
-        # Create and fit core model
-        self.model_ = _CoreBoost(
-            trees=int(self.n_estimators),
-            depth=int(self.max_depth),
-            bins=int(self.n_bins),
-            learning_rate=float(self.learning_rate),
-            min_samples_leaf=int(self.min_samples_leaf),
-            random_state=seed,
-        )
-
-        self.model_.fit(X, y, clip_min=float(self.clip_min), clip_max=float(self.clip_max))
+        if self.n_classes_ == 2:
+            # Binary classification: use existing Boost
+            self._is_multiclass = False
+            self.model_ = _CoreBoost(
+                trees=int(self.n_estimators),
+                depth=int(self.max_depth),
+                bins=int(self.n_bins),
+                learning_rate=float(self.learning_rate),
+                min_samples_leaf=int(self.min_samples_leaf),
+                random_state=seed,
+            )
+            self.model_.fit(X, y, clip_min=float(self.clip_min), clip_max=float(self.clip_max))
+        else:
+            # Multiclass: use One-vs-Rest (OvR)
+            self._is_multiclass = True
+            self.model_ = _CoreOvR(
+                trees=int(self.n_estimators),
+                depth=int(self.max_depth),
+                bins=int(self.n_bins),
+                learning_rate=float(self.learning_rate),
+                min_samples_leaf=int(self.min_samples_leaf),
+                random_state=seed,
+            )
+            self.model_.fit(X, y, clip_min=float(self.clip_min), clip_max=float(self.clip_max))
 
         return self
 
@@ -407,7 +433,7 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         Returns
         -------
         y_pred : ndarray of shape (n_samples,)
-            Predicted class labels (0 or 1)
+            Predicted class labels
         """
         if _SKLEARN_AVAILABLE:
             check_is_fitted(self, ["model_"])
@@ -419,7 +445,15 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         if _SKLEARN_AVAILABLE:
             X = check_array(X, accept_sparse=False, dtype=np.float64)
 
-        return self.model_.predict_class(X)
+        if self._is_multiclass:
+            # Multiclass: OvR returns class indices directly
+            preds = self.model_.predict(X)
+        else:
+            # Binary: use predict_class which applies threshold
+            preds = self.model_.predict_class(X)
+
+        # Map back to original class labels
+        return self.classes_[preds]
 
     def predict_proba(self, X: Union[np.ndarray, "pd.DataFrame"]) -> np.ndarray:
         """
@@ -433,12 +467,12 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         Returns
         -------
         proba : ndarray of shape (n_samples, n_classes)
-            Class probabilities. Column 0 is P(y=0), column 1 is P(y=1)
+            Class probabilities.
 
         Notes
         -----
-        IntgrML returns integer logits. This method applies sigmoid transformation
-        to convert logits to probabilities.
+        For binary classification, applies sigmoid to logits.
+        For multiclass, applies softmax to K logits from OvR heads.
         """
         if _SKLEARN_AVAILABLE:
             check_is_fitted(self, ["model_"])
@@ -449,17 +483,21 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         if _SKLEARN_AVAILABLE:
             X = check_array(X, accept_sparse=False, dtype=np.float64)
 
-        # Get logits
-        logits = self.model_.predict(X)
+        if self._is_multiclass:
+            # Multiclass: get logits for all K classes
+            logits = self.model_.predict_logits(X)  # (n_samples, n_classes)
+            logits = logits.astype(np.float64) / self.temperature
 
-        # Apply sigmoid: p = 1 / (1 + exp(-logit / temperature))
-        # IntgrML returns Q8.8 fixed-point logits; temperature scaling converts
-        # to well-calibrated probabilities. Default temperature=100.0 works well
-        # for typical gradient boosting outputs.
-        proba_class_1 = 1.0 / (1.0 + np.exp(-logits.astype(np.float64) / self.temperature))
-        proba_class_0 = 1.0 - proba_class_1
-
-        return np.column_stack([proba_class_0, proba_class_1])
+            # Apply softmax
+            exp_logits = np.exp(logits - np.max(logits, axis=1, keepdims=True))
+            proba = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
+            return proba
+        else:
+            # Binary: single logit, apply sigmoid
+            logits = self.model_.predict(X)
+            proba_class_1 = 1.0 / (1.0 + np.exp(-logits.astype(np.float64) / self.temperature))
+            proba_class_0 = 1.0 - proba_class_1
+            return np.column_stack([proba_class_0, proba_class_1])
 
     def decision_function(self, X: Union[np.ndarray, "pd.DataFrame"]) -> np.ndarray:
         """
@@ -472,8 +510,9 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
 
         Returns
         -------
-        decision : ndarray of shape (n_samples,)
-            Decision function values (raw logits)
+        decision : ndarray
+            For binary: shape (n_samples,), raw logits
+            For multiclass: shape (n_samples, n_classes), raw logits per class
         """
         if _SKLEARN_AVAILABLE:
             check_is_fitted(self, ["model_"])
@@ -484,7 +523,10 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         if _SKLEARN_AVAILABLE:
             X = check_array(X, accept_sparse=False, dtype=np.float64)
 
-        return self.model_.predict(X).astype(np.float64)
+        if self._is_multiclass:
+            return self.model_.predict_logits(X).astype(np.float64)
+        else:
+            return self.model_.predict(X).astype(np.float64)
 
     @property
     def feature_importances_(self) -> np.ndarray:
@@ -525,16 +567,41 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
         return float((y_pred == y).mean())
 
     def save(self, path: str) -> None:
-        """Save model to file (.sbf format)"""
+        """Save model to file.
+
+        Uses .sbf format for binary, .ovr format for multiclass.
+        A sidecar .meta file stores quantization parameters.
+        """
         self.model_.save(path)
 
     def load(self, path: str) -> None:
-        """Load model from file (.sbf format)"""
-        # Create model instance if not already fitted
-        if not hasattr(self, "model_"):
-            seed = _validate_random_state(self.random_state)
-            if seed is None:
-                seed = 42
+        """Load model from file.
+
+        Detects format from file extension (.sbf for binary, .ovr for multiclass).
+        """
+        seed = _validate_random_state(self.random_state)
+        if seed is None:
+            seed = 42
+
+        # Detect format from extension
+        if path.endswith('.ovr'):
+            # Multiclass model
+            self._is_multiclass = True
+            self.model_ = _CoreOvR(
+                trees=int(self.n_estimators),
+                depth=int(self.max_depth),
+                bins=int(self.n_bins),
+                learning_rate=float(self.learning_rate),
+                min_samples_leaf=int(self.min_samples_leaf),
+                random_state=seed,
+            )
+            self.model_.load(path)
+            self.n_features_in_ = self.model_.n_features
+            self.n_classes_ = self.model_.n_classes
+            self.classes_ = np.arange(self.n_classes_)
+        else:
+            # Binary model (.sbf)
+            self._is_multiclass = False
             self.model_ = _CoreBoost(
                 trees=int(self.n_estimators),
                 depth=int(self.max_depth),
@@ -543,10 +610,10 @@ class IntgrBoostClassifier(BaseEstimator, ClassifierMixin):
                 min_samples_leaf=int(self.min_samples_leaf),
                 random_state=seed,
             )
-        self.model_.load(path)
-        # Set fitted attributes
-        self.n_features_in_ = self.model_.n_features
-        self.classes_ = np.array([0, 1])
+            self.model_.load(path)
+            self.n_features_in_ = self.model_.n_features
+            self.n_classes_ = 2
+            self.classes_ = np.array([0, 1])
 
 
 class IntgrBoostRegressor(BaseEstimator, RegressorMixin):

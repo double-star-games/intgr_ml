@@ -376,7 +376,11 @@ The sklearn-compatible API provides full integration with scikit-learn's ecosyst
 
 ### IntgrBoostClassifier
 
-Gradient boosted decision trees for binary classification, compatible with scikit-learn.
+Gradient boosted decision trees for binary and multiclass classification, compatible with scikit-learn.
+
+Supports:
+- **Binary classification** (2 classes): Uses single gradient boosting model
+- **Multiclass classification** (K > 2 classes): Automatically uses One-vs-Rest (OvR) strategy
 
 ```python
 from intgrml import IntgrBoostClassifier
@@ -461,7 +465,8 @@ Fit the gradient boosting model.
   Accepts: NumPy arrays, pandas DataFrames
 
 - **y** : `array-like` of shape `(n_samples,)`
-  Target values (binary: 0 or 1)
+  Target values. Binary: 0 or 1. Multiclass: 0, 1, 2, ...
+  For K > 2 unique values, automatically uses OvR strategy.
   Accepts: NumPy arrays, pandas Series
 
 - **sample_weight** : `array-like` of shape `(n_samples,)` or `None`
@@ -532,24 +537,26 @@ Predict class probabilities for samples.
 
 **Returns:**
 
-- **proba** : `ndarray` of shape `(n_samples, 2)` (float64)
+- **proba** : `ndarray` of shape `(n_samples, n_classes)` (float64)
   Class probabilities
-  Column 0: P(y=0 | X)
-  Column 1: P(y=1 | X)
+  For binary: Column 0 is P(y=0), Column 1 is P(y=1)
+  For multiclass: Column k is P(y=k)
   Rows sum to 1.0
 
 **Example:**
 
 ```python
 proba = clf.predict_proba(X_test)
-# Get probability of positive class
+# Get probability of positive class (binary)
 prob_positive = proba[:, 1]
+
+# For multiclass: get predicted class probabilities
+predicted_class = np.argmax(proba, axis=1)
 ```
 
-**Note:** Applies sigmoid transformation to integer logits:
-```python
-p(y=1) = 1 / (1 + exp(-logit / 100))
-```
+**Note:**
+- Binary: Applies sigmoid to logits: `p(y=1) = 1 / (1 + exp(-logit / temperature))`
+- Multiclass: Applies softmax to OvR logits
 
 ##### `decision_function(X)`
 
@@ -636,24 +643,32 @@ clf.set_params(n_estimators=200, max_depth=8)
 
 ##### `save(path)`
 
-Save model to file (.sbf format).
+Save model to file.
 
 **Parameters:**
 
 - **path** : `str`
-  File path
+  File path. Use `.sbf` for binary, `.ovr` for multiclass.
 
 **Returns:** `None`
+
+**Files Created:**
+- `model.sbf` or `model.ovr` - Binary model file
+- `model.sbf.meta` or `model.ovr.meta` - JSON sidecar with quantization parameters
 
 **Example:**
 
 ```python
+# Binary model
 clf.save("model.sbf")
+
+# Multiclass model (use .ovr extension)
+clf.save("model.ovr")
 ```
 
 ##### `load(path)`
 
-Load model from file (.sbf format).
+Load model from file. Automatically detects binary (.sbf) or multiclass (.ovr) format.
 
 **Parameters:**
 
@@ -661,12 +676,18 @@ Load model from file (.sbf format).
   File path
 
 **Returns:** `None`
+
+**Notes:**
+- Reads sidecar `.meta` file if present for exact reproducibility
+- Falls back to default quantization parameters for backward compatibility
 
 **Example:**
 
 ```python
 clf = IntgrBoostClassifier()
-clf.load("model.sbf")
+clf.load("model.sbf")  # Binary model
+# or
+clf.load("model.ovr")  # Multiclass model
 ```
 
 #### Attributes
@@ -689,9 +710,15 @@ Only available if fit with pandas DataFrame.
 
 Class labels.
 
-**Type:** `ndarray` of shape `(2,)`
+**Type:** `ndarray` of shape `(n_classes,)`
 
-Always `[0, 1]` for binary classification.
+For binary: `[0, 1]`. For multiclass: `[0, 1, 2, ...]` based on training labels.
+
+##### `n_classes_`
+
+Number of classes (2 for binary, K for multiclass).
+
+**Type:** `int`
 
 ##### `feature_importances_`
 
@@ -1005,20 +1032,22 @@ grid.fit(X_train, y_train)
 
 ### Issue: Model gives different predictions after save/load
 
-**Cause:** Quantization parameters (clip_min, clip_max) not stored in .sbf format.
+**Cause (v1.2.6 and earlier):** Quantization parameters (clip_min, clip_max) not stored in .sbf format.
 
-**Solution:** Use same values for training and loading:
+**Solution (v1.2.8+):** Quantization parameters are now automatically saved in a sidecar `.meta` file:
 
 ```python
 # Training
 clf = IntgrBoostClassifier(clip_min=-5.0, clip_max=5.0)
 clf.fit(X_train, y_train)
-clf.save("model.sbf")
+clf.save("model.sbf")  # Creates model.sbf and model.sbf.meta
 
-# Loading - must recreate with same params
-clf2 = IntgrBoostClassifier(clip_min=-5.0, clip_max=5.0)
-clf2.load("model.sbf")
+# Loading - parameters restored from .meta file
+clf2 = IntgrBoostClassifier()
+clf2.load("model.sbf")  # Reads both model.sbf and model.sbf.meta
 ```
+
+**For older models without .meta file:** Falls back to default clip bounds (-10.0, 10.0).
 
 ### Issue: Low accuracy compared to XGBoost
 
@@ -1122,20 +1151,26 @@ clf = IntgrBoostClassifier()
 clf.fit(X_selected, y_train)
 ```
 
-### Issue: Multiclass classification not supported
+### Multiclass Classification
 
-**Workaround:** Use One-vs-Rest manually:
+IntgrBoostClassifier now supports multiclass classification natively. When training with K > 2 classes, it automatically uses One-vs-Rest (OvR) strategy:
 
 ```python
-from sklearn.multiclass import OneVsRestClassifier
 from intgrml import IntgrBoostClassifier
 
-ovr = OneVsRestClassifier(IntgrBoostClassifier(n_estimators=100))
-ovr.fit(X_train, y_multiclass)
-y_pred = ovr.predict(X_test)
+# Multiclass example (3 classes)
+clf = IntgrBoostClassifier(n_estimators=100, random_state=42)
+clf.fit(X_train, y_multiclass)  # y contains 0, 1, 2
+y_pred = clf.predict(X_test)
+
+# Get probabilities for all classes
+proba = clf.predict_proba(X_test)  # Shape: (n_samples, 3)
 ```
 
-**Note:** Native multiclass support coming in v1.3.0.
+**Notes:**
+- Multiclass models are saved with `.ovr` extension
+- Training uses parallel OvR (K binary classifiers trained in parallel)
+- Predictions use argmax over all K class logits
 
 ---
 
@@ -1198,22 +1233,29 @@ grid = GridSearchCV(clf, param_grid, cv=3)
 
 ## Version History
 
-### v1.2.1 (Current)
+### v1.2.8 (Current)
+- **Multiclass classification**: IntgrBoostClassifier now auto-detects K > 2 classes and uses OvR
+- **Sidecar metadata persistence**: clip_min/clip_max saved in `.meta` JSON file
+- **OvR Python bindings**: Native multiclass support via OvR module
+
+### v1.2.7
+- Parameter validation at fit() time
+- Temperature parameter for predict_proba() calibration
+- Feature limit validation (65,535 max features)
+
+### v1.2.1
 - Initial Python bindings release
 - Binary classification support
 - sklearn API compatibility
 - Model serialization
 - Pandas integration
-- 90% test coverage
 
-### v1.3.0 (Planned Q1 2026)
-- Multiclass classification
+### v1.3.0 (Planned)
 - Sample weights support
 - Sparse matrix support
-- Store quantization params in .sbf
 - Categorical features
 
-### v1.4.0 (Planned Q2 2026)
+### v1.4.0 (Planned)
 - ONNX export
 - TensorFlow Lite export
 - Optional GPU acceleration
