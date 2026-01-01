@@ -1,6 +1,6 @@
 # IntgrML
 
-**Version 1.3.0** — Integer-Only Machine Learning for Edge Devices
+**Version 1.3.1** — Integer-Only Machine Learning for Edge Devices
 
 IntgrML is a production-ready machine learning library that performs training and inference using pure integer arithmetic. Designed for deterministic, reproducible results across platforms, IntgrML enables deployment on embedded systems, microcontrollers, and environments where floating-point hardware is unavailable or undesirable.
 
@@ -34,8 +34,7 @@ This is intentional: IntgrML's core implementation is closed-source, but the SDK
 - **Edge/embedded ready**: Models run identically on desktop, MCU, and WebAssembly targets
 - **Efficient memory layout**: Compact model formats optimized for constrained environments
 - **Multiple algorithms**: Gradient boosting (IntgrBoost), random forests (IntgrForest), linear models (IntgrLinear), Naive Bayes (IntgrBayes), PCA (IntgrReduce)
-- **Multiclass support**: One-vs-Rest classification for K-class problems (CLI and Python API)
-- **Model metadata persistence**: Quantization parameters (`clip_min`, `clip_max`) saved in sidecar `.meta` files
+- **Multiclass support**: One-vs-Rest classification for K-class problems
 - **65,535 feature limit**: Intentional design constraint for u16 indexing efficiency; use IntgrReduce for high-dimensional data
 - **Three interfaces**: C++ API, command-line tool (`intgrmlc`), and Python package (`intgrml`)
 
@@ -199,7 +198,7 @@ predictions = clf.predict(X_train)
 accuracy = (predictions == y_train).mean()
 print(f"Training accuracy: {accuracy:.2%}")
 
-# Save model (creates model.sbf and model.sbf.meta)
+# Save and load models
 clf.save("model.sbf")
 ```
 

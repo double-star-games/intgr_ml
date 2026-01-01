@@ -58,11 +58,12 @@ public:
             } else {
                 // Multiclass: treat as regression, bias = mean of labels (scaled by 32)
                 // Scaling factor of 32 puts labels in comparable range to hessian=256
+                // Note: scale BEFORE division to avoid integer truncation (e.g., 119/120=0)
                 i64 sum_labels = 0;
                 for (usize i = 0; i < num_samples; ++i) {
                     sum_labels += labels[i];
                 }
-                model.bias_fp = static_cast<i32>(sum_labels / static_cast<i64>(num_samples)) * 32;
+                model.bias_fp = static_cast<i32>((sum_labels * 32) / static_cast<i64>(num_samples));
             }
         } else {
             // Regression: bias = mean of labels
