@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2025-12-31
+
+### Added
+
+- **Python Multiclass Classification**: `IntgrBoostClassifier` now supports multiclass (K > 2 classes) directly
+  - Auto-detects number of classes from training labels
+  - Uses One-vs-Rest (OvR) internally for K > 2 classes
+  - `predict()` returns class labels (0 to K-1)
+  - `predict_proba()` returns (n_samples, K) array with softmax-normalized probabilities
+  - `classes_` and `n_classes_` attributes available after fitting
+  - Models saved as `.ovr` format for multiclass, `.sbf` for binary
+
+- **Sidecar Metadata Persistence**: Models now save quantization parameters to companion `.meta` files
+  - Saves `clip_min`, `clip_max`, `n_bins`, and `n_classes`
+  - Backward compatible: old models without `.meta` files load with defaults
+  - JSON format for human readability and debugging
+  - Example: `model.sbf` creates `model.sbf.meta`
+
+### Documentation
+
+- Updated [Python API Reference](docs/PYTHON_API.md) with multiclass usage and sidecar metadata
+
+---
+
 ## [1.2.7] - 2025-12-30
 
 ### Added
