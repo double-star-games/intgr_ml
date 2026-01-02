@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.2] - 2026-01-02
+
+### Fixed
+
+- **AVX-512 Build Issue**: Fixed wheels being compiled with AVX-512 instructions (Issue #36)
+  - v1.3.1 crashed with "Illegal instruction" on non-AVX-512 CPUs (Intel Arrow Lake, most AMD, older Intel)
+  - Root cause: GitHub runner had AVX-512, and `-march=native` was enabled
+  - Fix 1: Added `-DINTGRML_MARCH_NATIVE=OFF` to release workflow for x86_64 builds
+  - Fix 2: Added explicit `-mno-avx512f -mno-avx512vl -mno-avx512bw -mno-avx512dq` flags to CMakeLists.txt as safety belt
+  - Binaries now use VEX-encoded AVX2 instructions (compatible with all AVX2 CPUs)
+
+---
+
 ## [1.3.1] - 2026-01-01
 
 ### 🐛 Fixed

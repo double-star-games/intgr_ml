@@ -1,6 +1,6 @@
 # IntgrML
 
-**Version 1.3.1** — Integer-Only Machine Learning for Edge Devices
+**Version 1.3.2** — Integer-Only Machine Learning for Edge Devices
 
 IntgrML is a production-ready machine learning library that performs training and inference using pure integer arithmetic. Designed for deterministic, reproducible results across platforms, IntgrML enables deployment on embedded systems, microcontrollers, and environments where floating-point hardware is unavailable or undesirable.
 
